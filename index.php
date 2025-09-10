@@ -15,8 +15,8 @@ try {
     $stmt = $pdo->prepare("SELECT dateTime, safe FROM obs_weather WHERE dateTime >= UNIX_TIMESTAMP(DATE_SUB(CURDATE(), INTERVAL 30 DAY)) ORDER BY dateTime");
     $stmt->execute();
 
-    // Initialize array covering last 30 days with zero seconds.
-    $start = new DateTime('-29 days');
+    // Initialize array covering the last 30 full days with zero seconds.
+    $start = new DateTime('today -29 days');
     for ($i = 0; $i < 30; $i++) {
         $d = clone $start;
         $d->modify("+{$i} day");
@@ -33,7 +33,7 @@ try {
                 $segmentEnd = $nextTime;
                 while ($segmentStart < $segmentEnd) {
                     $day = date('Y-m-d', $segmentStart);
-                    $dayStart = strtotime($day, $segmentStart);
+                    $dayStart = strtotime($day);
                     $dayEnd = $dayStart + 86400;
                     $boundary = min($segmentEnd, $dayEnd);
                     if (isset($safeData[$day])) {
@@ -43,6 +43,24 @@ try {
                 }
             }
             $prev = $row;
+        }
+
+        // account for time after the final row up to now
+        if ((int)$prev['safe'] === 1) {
+            $currTime = (int)$prev['dateTime'];
+            $nextTime = time();
+            $segmentStart = $currTime;
+            $segmentEnd = $nextTime;
+            while ($segmentStart < $segmentEnd) {
+                $day = date('Y-m-d', $segmentStart);
+                $dayStart = strtotime($day);
+                $dayEnd = $dayStart + 86400;
+                $boundary = min($segmentEnd, $dayEnd);
+                if (isset($safeData[$day])) {
+                    $safeData[$day] += $boundary - $segmentStart;
+                }
+                $segmentStart = $boundary;
+            }
         }
     }
 
