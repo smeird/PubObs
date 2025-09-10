@@ -1,5 +1,5 @@
 {
-  "host": "localhost",
+  "host": "mqtt.smeird.com",
   "topics": {
     "temperature": "Observatory/temp",
     "rain": "Observatory/rain",
