@@ -97,6 +97,17 @@ envTopicNames.forEach((name, idx) => {
     cardsContainer.innerHTML = '';
     const sanitize = name => name.replace(/[^a-zA-Z0-9_-]/g, '_');
 
+    const icons = {
+        temperature: '🌡️',
+        rain: '🌧️',
+        light: '💡',
+        clouds: '☁️',
+        safe: '🛡️',
+        sqm: '⭐',
+        humidity: '💧',
+        dewpoint: '❄️'
+    };
+
     topicEntries.forEach(([name, cfg]) => {
         const topic = cfg.topic;
         const id = 'value-' + sanitize(name);
@@ -104,9 +115,10 @@ envTopicNames.forEach((name, idx) => {
 
         card.id = 'card-' + sanitize(name);
         card.className = 'bg-gray-100 dark:bg-gray-800 p-4 rounded shadow h-32 flex border-4 border-transparent';
+        const icon = icons[name] || '📟';
         card.innerHTML = `
             <div class="flex flex-col justify-between w-1/2">
-                <h2 class="text-xl font-semibold">${name}</h2>
+                <h2 class="text-xl font-semibold flex items-center"><span class="mr-2">${icon}</span>${name}</h2>
 
                 <div class="mt-2 flex space-x-2">
                     <a href="historical.php?topic=${encodeURIComponent(name)}" class="text-indigo-600 dark:text-indigo-400 hover:underline">History</a>
