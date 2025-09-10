@@ -49,7 +49,7 @@ ORDER BY dateTime DESC;
 ## Configuration
 
 MQTT host and topic names are defined in `mqtt_config.json`. Update this file to match your local MQTT broker settings.
-The MQTT WebSocket port is 8083.
+Each topic can optionally include a `green` threshold and a `condition` of `above` or `below` to highlight the card border when the incoming value meets the rule. The MQTT WebSocket port is 8083.
 
 Database credentials are provided to Apache via environment variables:
 

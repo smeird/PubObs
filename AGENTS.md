@@ -35,3 +35,5 @@ Design decisions added after this file should be appended here for future refere
 26. Historical page queries are capped at a maximum span of seven days to prevent excessive data loads.
 27. Historical pages provide a button to download data as CSV instead of displaying a table.
 
+28. `mqtt_config.json` topics can include a `green` threshold and `condition` (`above` or `below`) that turns the index page card border green when the incoming MQTT value meets the rule.
+
