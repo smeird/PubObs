@@ -8,7 +8,7 @@ Website that publicly shows observatory sensor data. The site displays live and 
 - Historical data stored in a local MySQL table `obs_weather`
 - Highcharts for interactive graphs
 - Tabulator for data tables
-- Tailwind CSS default styling with light and dark modes
+- Tailwind CSS with daisyUI themes (dark, light, dracula) and a runtime toggle between dark and dracula
 - Index page lists all live data sources with links to historical views, shows a live updating graph, and displays nightly observable hours from the past 30 days
 - Historical pages default to the last week of readings and include date range controls to browse any period
 
