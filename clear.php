@@ -7,53 +7,48 @@ $dbName = getenv('DB_NAME');
 $dbUser = getenv('DB_USER');
 $dbPass = getenv('DB_PASS');
 
-$monthSeconds = array_fill(1, 12, 0);
+$monthHours = array_fill(1, 12, 0.0);
 $years = [];
 try {
     $pdo = new PDO("mysql:host=$dbHost;dbname=$dbName;charset=utf8", $dbUser, $dbPass, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
     $years = $pdo->query("SELECT DISTINCT YEAR(FROM_UNIXTIME(dateTime)) AS y FROM obs_weather ORDER BY y DESC")->fetchAll(PDO::FETCH_COLUMN);
     $start = $year . '-01-01 00:00:00';
     $end = ($year + 1) . '-01-01 00:00:00';
-    $stmt = $pdo->prepare("SELECT dateTime, safe FROM obs_weather WHERE dateTime BETWEEN UNIX_TIMESTAMP(:start) AND UNIX_TIMESTAMP(:end) ORDER BY dateTime");
-    $stmt->execute(['start' => $start, 'end' => $end]);
-    $prev = $stmt->fetch(PDO::FETCH_ASSOC);
-    if ($prev) {
-        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $currTime = (int)$prev['dateTime'];
-            $nextTime = (int)$row['dateTime'];
-            if ((int)$prev['safe'] === 1) {
-                $segmentStart = $currTime;
-                $segmentEnd = $nextTime;
-                while ($segmentStart < $segmentEnd) {
-                    $month = (int)date('n', $segmentStart);
-                    $monthStart = strtotime(date('Y-m-01', $segmentStart));
-                    $nextMonthStart = strtotime('+1 month', $monthStart);
-                    $boundary = min($segmentEnd, $nextMonthStart);
-                    $monthSeconds[$month] += $boundary - $segmentStart;
-                    $segmentStart = $boundary;
-                }
-            }
-            $prev = $row;
-        }
 
-        // include time from the last row to year end
-        if ((int)$prev['safe'] === 1) {
-            $segmentStart = (int)$prev['dateTime'];
-            $segmentEnd = strtotime($end);
-            while ($segmentStart < $segmentEnd) {
-                $month = (int)date('n', $segmentStart);
-                $monthStart = strtotime(date('Y-m-01', $segmentStart));
-                $nextMonthStart = strtotime('+1 month', $monthStart);
-                $boundary = min($segmentEnd, $nextMonthStart);
-                $monthSeconds[$month] += $boundary - $segmentStart;
-                $segmentStart = $boundary;
-            }
+    // Aggregate safe minutes per month
+    $stmt = $pdo->prepare("SELECT MONTH(FROM_UNIXTIME(dateTime)) AS month, SUM(safe)/60 AS hours FROM obs_weather WHERE dateTime BETWEEN UNIX_TIMESTAMP(:start) AND UNIX_TIMESTAMP(:end) GROUP BY month");
+    $stmt->execute(['start' => $start, 'end' => $end]);
+    foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        $m = (int)$row['month'];
+        if (isset($monthHours[$m])) {
+            $monthHours[$m] = (float)$row['hours'];
+        }
+    }
+
+    // Include time from the last record to period end if still safe
+    $periodEnd = min(strtotime($end), time());
+    $lastStmt = $pdo->prepare("SELECT dateTime, safe FROM obs_weather WHERE dateTime BETWEEN UNIX_TIMESTAMP(:start) AND UNIX_TIMESTAMP(:periodEnd) ORDER BY dateTime DESC LIMIT 1");
+    $lastStmt->execute(['start' => $start, 'periodEnd' => date('Y-m-d H:i:s', $periodEnd)]);
+    $lastRow = $lastStmt->fetch(PDO::FETCH_ASSOC);
+    if ($lastRow && (int)$lastRow['safe'] === 1) {
+        $rangeStart = strtotime($start);
+        $segmentStart = max((int)$lastRow['dateTime'], $rangeStart);
+        $segmentEnd = $periodEnd;
+        while ($segmentStart < $segmentEnd) {
+            $month = (int)date('n', $segmentStart);
+            if (!isset($monthHours[$month])) break;
+            $monthStart = strtotime(date('Y-m-01', $segmentStart));
+            $nextMonthStart = strtotime('+1 month', $monthStart);
+            $boundary = min($segmentEnd, $nextMonthStart);
+            $monthHours[$month] += ($boundary - $segmentStart) / 3600;
+            $segmentStart = $boundary;
         }
     }
 } catch (Exception $e) {
-    $monthSeconds = array_fill(1, 12, 0);
+    $monthHours = array_fill(1, 12, 0.0);
 }
-$monthHours = array_map(function ($s) { return round($s / 3600, 2); }, $monthSeconds);
+// Round hours for output
+$monthHours = array_map(function ($h) { return round($h, 2); }, $monthHours);
 $monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 ?>
 <!DOCTYPE html>

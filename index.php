@@ -11,64 +11,45 @@ $dbPass = getenv('DB_PASS');
 $safeData = [];
 try {
     $pdo = new PDO("mysql:host=$dbHost;dbname=$dbName;charset=utf8", $dbUser, $dbPass, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
-    // Fetch safe records for the last 30 days and compute hours where safe=1.
-    $stmt = $pdo->prepare("SELECT dateTime, safe FROM obs_weather WHERE dateTime >= UNIX_TIMESTAMP(DATE_SUB(CURDATE(), INTERVAL 30 DAY)) ORDER BY dateTime");
-    $stmt->execute();
 
-    // Initialize array covering the last 30 full days with zero seconds.
+    // Build map for last 30 days initialised to 0 hours
     $start = new DateTime('today -29 days');
+    $dayMap = [];
     for ($i = 0; $i < 30; $i++) {
         $d = clone $start;
         $d->modify("+{$i} day");
-        $safeData[$d->format('Y-m-d')] = 0;
+        $dayMap[$d->format('Y-m-d')] = 0.0;
     }
 
-    $prev = $stmt->fetch(PDO::FETCH_ASSOC);
-    if ($prev) {
-        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $currTime = (int)$prev['dateTime'];
-            $nextTime = (int)$row['dateTime'];
-            if ((int)$prev['safe'] === 1) {
-                $segmentStart = $currTime;
-                $segmentEnd = $nextTime;
-                while ($segmentStart < $segmentEnd) {
-                    $day = date('Y-m-d', $segmentStart);
-                    $dayStart = strtotime($day);
-                    $dayEnd = $dayStart + 86400;
-                    $boundary = min($segmentEnd, $dayEnd);
-                    if (isset($safeData[$day])) {
-                        $safeData[$day] += $boundary - $segmentStart;
-                    }
-                    $segmentStart = $boundary;
-                }
-            }
-            $prev = $row;
-        }
-
-        // account for time after the final row up to now
-        if ((int)$prev['safe'] === 1) {
-            $currTime = (int)$prev['dateTime'];
-            $nextTime = time();
-            $segmentStart = $currTime;
-            $segmentEnd = $nextTime;
-            while ($segmentStart < $segmentEnd) {
-                $day = date('Y-m-d', $segmentStart);
-                $dayStart = strtotime($day);
-                $dayEnd = $dayStart + 86400;
-                $boundary = min($segmentEnd, $dayEnd);
-                if (isset($safeData[$day])) {
-                    $safeData[$day] += $boundary - $segmentStart;
-                }
-                $segmentStart = $boundary;
-            }
+    // Aggregate safe minutes per day
+    $stmt = $pdo->prepare("SELECT DATE(FROM_UNIXTIME(dateTime)) AS day, SUM(safe)/60 AS hours FROM obs_weather WHERE dateTime >= UNIX_TIMESTAMP(DATE_SUB(CURDATE(), INTERVAL 30 DAY)) GROUP BY day ORDER BY day");
+    $stmt->execute();
+    foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        if (isset($dayMap[$row['day']])) {
+            $dayMap[$row['day']] = (float)$row['hours'];
         }
     }
 
-    $tmp = [];
-    foreach ($safeData as $day => $seconds) {
-        $tmp[] = ['day' => $day, 'hours' => round($seconds / 3600, 2)];
+    // Include time from last record to now if still safe
+    $rangeStart = strtotime('today -29 days');
+    $lastRow = $pdo->query("SELECT dateTime, safe FROM obs_weather ORDER BY dateTime DESC LIMIT 1")->fetch(PDO::FETCH_ASSOC);
+    if ($lastRow && (int)$lastRow['safe'] === 1) {
+        $segmentStart = max((int)$lastRow['dateTime'], $rangeStart);
+        $segmentEnd = time();
+        while ($segmentStart < $segmentEnd) {
+            $day = date('Y-m-d', $segmentStart);
+            if (!isset($dayMap[$day])) break;
+            $dayStart = strtotime($day);
+            $dayEnd = $dayStart + 86400;
+            $boundary = min($segmentEnd, $dayEnd);
+            $dayMap[$day] += ($boundary - $segmentStart) / 3600;
+            $segmentStart = $boundary;
+        }
     }
-    $safeData = $tmp;
+
+    foreach ($dayMap as $day => $hours) {
+        $safeData[] = ['day' => $day, 'hours' => round($hours, 2)];
+    }
 } catch (Exception $e) {
     $safeData = [];
 }
