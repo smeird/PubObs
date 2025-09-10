@@ -11,6 +11,11 @@ $topics = $config['topics'] ?? [];
     <title>PubObs Live Data</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
     <!-- Highcharts -->
     <script src="https://code.highcharts.com/highcharts.js"></script>
     <!-- Tabulator -->
