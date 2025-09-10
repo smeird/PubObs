@@ -4,7 +4,7 @@
     "temperature": { "topic": "Observatory/temp", "unit": "°C" },
     "rain": { "topic": "Observatory/rain", "unit": "" },
     "light": { "topic": "Observatory/light", "green": 4000, "condition": "above", "unit": "lux" },
-    "clouds": { "topic": "Observatory/clouds", "unit": "%" },
+    "clouds": { "topic": "Observatory/clouds", "unit": "°C" },
     "safe": { "topic": "Observatory/safe", "unit": "" },
     "sqm": { "topic": "Observatory/sqm", "unit": "mag" },
     "humidity": { "topic": "Observatory/hum", "unit": "%" },
