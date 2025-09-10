@@ -11,6 +11,7 @@ Website that publicly shows observatory sensor data. The site displays live and 
 - Tailwind CSS default styling with light and dark modes
 - Index page lists all live data sources with links to historical views, shows a live updating graph, and displays nightly observable hours from the past 30 days
 - Historical pages default to the last week of readings and include date range controls to browse any period
+- Clear page shows safe observing hours aggregated by month for a selected year
 
 ## Sensor Data Tables
 
@@ -72,6 +73,7 @@ SetEnv DB_PASS "secret"
 ```mermaid
 flowchart LR
     Index["index.php"] --> Hist["historical.php"]
+    Index --> Clear["clear.php"]
 ```
 
 ## Architecture

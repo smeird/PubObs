@@ -82,7 +82,9 @@ try {
             </h1>
             <div class="flex items-center space-x-2">
                 <span id="mqttStatus" class="text-sm text-yellow-600">Connecting...</span>
+
                 <button id="modeToggle" class="p-2 rounded bg-indigo-500 text-white hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700" aria-label="Switch to Dark Mode">🌙</button>
+
             </div>
         </div>
         <div id="cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
@@ -111,11 +113,17 @@ const brokerHost = (host === 'localhost' || host === '127.0.0.1') ? window.locat
 const topicEntries = Object.entries(topics);
 let selectedName = topicEntries.length ? topicEntries[0][0] : '';
 let selectedTopic = topicEntries.length ? topicEntries[0][1].topic : null;
+let selectedUnit = topicEntries.length ? (topicEntries[0][1].unit || '') : '';
 
 const envTopicNames = ['clouds', 'light', 'sqm'];
 const envSeriesMap = {};
 envTopicNames.forEach((name, idx) => {
     if (topics[name]) envSeriesMap[topics[name].topic] = idx;
+});
+const envSeries = envTopicNames.map(name => {
+    const cfg = topics[name] || {};
+    const unit = cfg.unit ? ` (${cfg.unit})` : '';
+    return { name: name.charAt(0).toUpperCase() + name.slice(1) + unit, data: [] };
 });
 
     const cardsContainer = document.getElementById('cards');
@@ -141,6 +149,7 @@ envTopicNames.forEach((name, idx) => {
         card.id = 'card-' + sanitize(name);
         card.className = 'bg-gray-100 dark:bg-gray-800 p-4 rounded shadow h-32 flex border-4 border-transparent';
         const icon = icons[name] || '📟';
+        const unitMarkup = cfg.unit ? `<span class="text-2xl ml-1">${cfg.unit}</span>` : '';
         card.innerHTML = `
             <div class="flex flex-col justify-between w-1/2">
                 <h2 class="text-xl font-semibold flex items-center"><span class="mr-2">${icon}</span>${name}</h2>
@@ -151,7 +160,7 @@ envTopicNames.forEach((name, idx) => {
                 </div>
             </div>
             <div class="w-1/2 flex items-center justify-center">
-                <p id="${id}" class="text-right text-6xl leading-none">--</p>
+                <p class="text-right text-6xl leading-none flex items-baseline justify-end"><span id="${id}">--</span>${unitMarkup}</p>
             </div>
 
         `;
@@ -162,8 +171,10 @@ envTopicNames.forEach((name, idx) => {
         if (e.target.classList.contains('show-chart')) {
             selectedTopic = e.target.dataset.topic;
             selectedName = e.target.dataset.name;
+            selectedUnit = topics[selectedName] && topics[selectedName].unit ? topics[selectedName].unit : '';
             chart.series[0].setData([]);
-            chart.setTitle({ text: 'Live Sensor Data: ' + selectedName });
+            chart.setTitle({ text: 'Live Sensor Data: ' + selectedName + (selectedUnit ? ' (' + selectedUnit + ')' : '') });
+            chart.yAxis[0].setTitle({ text: selectedUnit });
         }
     });
 
@@ -264,8 +275,9 @@ envTopicNames.forEach((name, idx) => {
 
     const chart = Highcharts.chart('liveChart', {
         chart: { type: 'spline' },
-        title: { text: selectedName ? 'Live Sensor Data: ' + selectedName : 'Live Sensor Data' },
+        title: { text: selectedName ? 'Live Sensor Data: ' + selectedName + (selectedUnit ? ' (' + selectedUnit + ')' : '') : 'Live Sensor Data' },
         xAxis: { type: 'datetime' },
+        yAxis: { title: { text: selectedUnit } },
         series: [{ name: 'Value', data: [] }]
     });
 
@@ -283,11 +295,7 @@ envTopicNames.forEach((name, idx) => {
         chart: { type: 'spline' },
         title: { text: 'Realtime Clouds, Light, SQM' },
         xAxis: { type: 'datetime' },
-        series: [
-            { name: 'Clouds', data: [] },
-            { name: 'Light', data: [] },
-            { name: 'SQM', data: [] }
-        ]
+        series: envSeries
     });
 
     document.querySelectorAll('.fullscreen-btn').forEach(btn => {
