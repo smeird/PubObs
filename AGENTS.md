@@ -20,3 +20,6 @@ This file records design decisions and requirements for the PubObs website.
 Design decisions added after this file should be appended here for future reference.
 
 15. MQTT host and topic names are stored in `mqtt_config.json`.
+16. The website uses the Paho JavaScript client to subscribe to MQTT topics over WebSockets on port 9001.
+17. Historical data resides in a MySQL table named `sensor_data` with columns `topic`, `timestamp`, and `value`.
+18. Database credentials are read from the environment variables `DB_HOST`, `DB_NAME`, `DB_USER`, and `DB_PASS`.
