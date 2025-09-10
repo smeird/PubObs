@@ -5,7 +5,7 @@ Website that publicly shows observatory sensor data. The site displays live and 
 ## Features
 
 - Live data via MQTT
-- Historical data stored in a local MySQL database
+ - Historical data stored in a local MySQL table `obs_weather`
 - Highcharts for interactive graphs
 - Tabulator for data tables
 - Tailwind CSS default styling with light and dark modes
