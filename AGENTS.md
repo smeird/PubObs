@@ -39,4 +39,5 @@ Design decisions added after this file should be appended here for future refere
 30. `mqtt_config.json` topics may define a `unit` string to specify the measurement unit for display.
 31. The index page displays an icon before each MQTT topic name in its card.
 32. Observable hours are calculated by summing time intervals where the `safe` field equals 1.
+33. Safe data aggregation processes database rows sequentially to limit memory usage.
 
