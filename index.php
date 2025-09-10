@@ -83,6 +83,8 @@ try {
             <div class="flex items-center space-x-2">
                 <span id="mqttStatus" class="text-sm text-yellow-600">Connecting...</span>
 
+                <a href="clear.php" class="text-indigo-600 dark:text-indigo-400 hover:underline">Clear by Month</a>
+
                 <button id="modeToggle" class="p-2 rounded bg-indigo-500 text-white hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700" aria-label="Switch to Dark Mode">🌙</button>
 
             </div>
