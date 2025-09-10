@@ -63,15 +63,15 @@ try {
         <div id="cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
         <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
             <div id="liveChartContainer" class="bg-white/70 dark:bg-gray-800/70 p-4 rounded-xl shadow flex flex-col">
-                <div id="liveChart" class="h-64"></div>
+                <div id="liveChart" class="flex-1 min-h-[16rem]"></div>
                 <button data-target="liveChartContainer" class="mt-2 px-2 py-1 bg-blue-500 text-white rounded fullscreen-btn">Full Screen</button>
             </div>
             <div id="safeChartContainer" class="bg-white/70 dark:bg-gray-800/70 p-4 rounded-xl shadow flex flex-col">
-                <div id="safeChart" class="h-64"></div>
+                <div id="safeChart" class="flex-1 min-h-[16rem]"></div>
                 <button data-target="safeChartContainer" class="mt-2 px-2 py-1 bg-blue-500 text-white rounded fullscreen-btn">Full Screen</button>
             </div>
             <div id="envChartContainer" class="bg-white/70 dark:bg-gray-800/70 p-4 rounded-xl shadow flex flex-col">
-                <div id="envChart" class="h-64"></div>
+                <div id="envChart" class="flex-1 min-h-[16rem]"></div>
                 <button data-target="envChartContainer" class="mt-2 px-2 py-1 bg-blue-500 text-white rounded fullscreen-btn">Full Screen</button>
             </div>
         </div>
@@ -253,6 +253,7 @@ envTopicNames.forEach((name, idx) => {
             const target = document.getElementById(btn.dataset.target);
             btn.textContent = document.fullscreenElement === target ? 'Exit Full Screen' : 'Full Screen';
         });
+        Highcharts.charts.forEach(c => { if (c) c.reflow(); });
     });
 
     const modeToggle = document.getElementById('modeToggle');
