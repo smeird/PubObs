@@ -22,8 +22,10 @@ try {
     }
 
     // Aggregate safe minutes per day
-    $stmt = $pdo->prepare("SELECT DATE(FROM_UNIXTIME(dateTime)) AS day, SUM(safe)/60 AS hours FROM obs_weather WHERE dateTime >= UNIX_TIMESTAMP(DATE_SUB(CURDATE(), INTERVAL 30 DAY)) GROUP BY day ORDER BY day");
-    $stmt->execute();
+    $queryStart = $start->format('Y-m-d 00:00:00');
+    $queryEnd = date('Y-m-d H:i:s');
+    $stmt = $pdo->prepare("SELECT DATE(dateTime) AS day, SUM(safe)/60 AS hours FROM obs_weather WHERE dateTime BETWEEN :start AND :end GROUP BY day ORDER BY day");
+    $stmt->execute(['start' => $queryStart, 'end' => $queryEnd]);
     foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
         if (isset($dayMap[$row['day']])) {
             $dayMap[$row['day']] = (float)$row['hours'];
@@ -34,7 +36,7 @@ try {
     $rangeStart = strtotime('today -29 days');
     $lastRow = $pdo->query("SELECT dateTime, safe FROM obs_weather ORDER BY dateTime DESC LIMIT 1")->fetch(PDO::FETCH_ASSOC);
     if ($lastRow && (int)$lastRow['safe'] === 1) {
-        $segmentStart = max((int)$lastRow['dateTime'], $rangeStart);
+        $segmentStart = max(strtotime($lastRow['dateTime']), $rangeStart);
         $segmentEnd = time();
         while ($segmentStart < $segmentEnd) {
             $day = date('Y-m-d', $segmentStart);
