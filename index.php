@@ -51,19 +51,19 @@ try {
     <!-- Highcharts -->
     <script src="https://code.highcharts.com/highcharts.js"></script>
 </head>
-<body class="h-full bg-white text-gray-800 dark:bg-gray-900 dark:text-gray-100">
-    <div class="container mx-auto p-4">
-        <div class="flex justify-between items-center mb-4">
+<body class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-gray-900 text-gray-800 dark:text-gray-100 font-sans">
+    <div class="max-w-6xl mx-auto p-6">
+        <div class="flex justify-between items-center mb-8 bg-white/70 dark:bg-gray-800/70 backdrop-blur p-4 rounded-lg shadow">
             <h1 class="text-2xl font-bold">PubObs Live Data</h1>
             <div class="flex items-center space-x-2">
                 <span id="mqttStatus" class="text-sm text-yellow-600">Connecting...</span>
-                <button id="modeToggle" class="px-2 py-1 border rounded">Switch to Dark Mode</button>
+                <button id="modeToggle" class="px-3 py-1 rounded bg-indigo-500 text-white hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700">Switch to Dark Mode</button>
             </div>
         </div>
-        <div id="cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-        <div id="liveChart" class="mt-6"></div>
-        <div id="safeChart" class="mt-6"></div>
-        <div id="envChart" class="mt-6"></div>
+        <div id="cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        <div id="liveChart" class="mt-6 bg-white/70 dark:bg-gray-800/70 p-4 rounded-xl shadow"></div>
+        <div id="safeChart" class="mt-6 bg-white/70 dark:bg-gray-800/70 p-4 rounded-xl shadow"></div>
+        <div id="envChart" class="mt-6 bg-white/70 dark:bg-gray-800/70 p-4 rounded-xl shadow"></div>
     </div>
 
     <script>
@@ -99,7 +99,9 @@ const icons = {
     topicEntries.forEach(([name, topic]) => {
         const id = 'value-' + sanitize(name);
         const card = document.createElement('div');
-        card.className = 'bg-gray-100 dark:bg-gray-800 p-4 rounded shadow h-32 flex';
+
+        card.className = 'bg-white/70 dark:bg-gray-800/70 backdrop-blur p-4 rounded-xl shadow hover:shadow-lg transition h-48 flex flex-col';
+
         card.innerHTML = `
             <div class="flex flex-col justify-between w-1/2">
                 <div class="flex items-center space-x-2">
@@ -114,6 +116,12 @@ const icons = {
             <div class="w-1/2 flex items-center justify-center">
                 <p id="${id}" class="text-right text-6xl leading-none">--</p>
             </div>
+
+            <div class="mt-2 flex space-x-2">
+                <a href="historical.php?topic=${encodeURIComponent(name)}" class="text-indigo-600 dark:text-indigo-400 hover:underline">History</a>
+                <button class="px-2 py-1 bg-indigo-500 text-white rounded show-chart hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700" data-topic="${topic}" data-name="${name}">Show</button>
+            </div>
+
         `;
         cardsContainer.appendChild(card);
     });
