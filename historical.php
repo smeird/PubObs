@@ -1,5 +1,7 @@
 <?php
 $key = $_GET['topic'] ?? '';
+$config = json_decode(file_get_contents('mqtt_config.json'), true);
+$unit = $config['topics'][$key]['unit'] ?? '';
 
 // Map friendly topic names to obs_weather columns
 $columnMap = [
@@ -59,7 +61,7 @@ try {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>History: <?php echo htmlspecialchars($key); ?> - Wheathampstead AstroPhotography Conditions</title>
+    <title>History: <?php echo htmlspecialchars($key); ?><?php if ($unit) echo ' (' . htmlspecialchars($unit) . ')'; ?> - Wheathampstead AstroPhotography Conditions</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -73,7 +75,7 @@ try {
     <div class="max-w-4xl mx-auto p-6 bg-white/80 dark:bg-gray-800/80 backdrop-blur rounded-xl shadow-lg">
         <a href="index.php" class="mb-4 inline-block text-indigo-600 dark:text-indigo-400 hover:underline">&larr; Back to Home</a>
         <div class="flex justify-between items-center mb-6 bg-white/70 dark:bg-gray-800/70 backdrop-blur p-4 rounded-lg shadow">
-            <h1 class="text-2xl font-bold">History: <?php echo htmlspecialchars($key); ?></h1>
+            <h1 class="text-2xl font-bold">History: <?php echo htmlspecialchars($key); ?><?php if ($unit) echo ' (' . htmlspecialchars($unit) . ')'; ?></h1>
             <button id="modeToggle" class="px-3 py-1 rounded bg-indigo-500 text-white hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700">Switch to Dark Mode</button>
         </div>
         <form method="get" class="mb-6 flex flex-wrap items-end gap-4">
@@ -95,12 +97,14 @@ try {
     <script>
     const modeToggle = document.getElementById('modeToggle');
     const data = <?php echo json_encode($rows); ?>;
+    const unit = <?php echo json_encode($unit); ?>;
     const chartData = data.map(r => [Date.parse(r.timestamp), parseFloat(r.value)]);
     const histChart = Highcharts.chart('histChart', {
         chart: { type: 'line' },
         title: { text: 'Historical Data' },
         xAxis: { type: 'datetime' },
-        series: [{ name: <?php echo json_encode($key); ?>, data: chartData }]
+        yAxis: { title: { text: unit } },
+        series: [{ name: <?php echo json_encode($key . ($unit ? ' (' . $unit . ')' : '')); ?>, data: chartData }]
     });
 
     function updateChartTheme() {
