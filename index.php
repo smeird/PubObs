@@ -2,6 +2,35 @@
 $config = json_decode(file_get_contents('mqtt_config.json'), true);
 $host = $config['host'] ?? 'localhost';
 $topics = $config['topics'] ?? [];
+
+$dbHost = getenv('DB_HOST');
+$dbName = getenv('DB_NAME');
+$dbUser = getenv('DB_USER');
+$dbPass = getenv('DB_PASS');
+
+$safeData = [];
+try {
+    $pdo = new PDO("mysql:host=$dbHost;dbname=$dbName;charset=utf8", $dbUser, $dbPass, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
+    $stmt = $pdo->prepare("SELECT DATE(FROM_UNIXTIME(dateTime)) AS day, SUM(safe)/60 AS hours FROM obs_weather WHERE dateTime >= UNIX_TIMESTAMP(DATE_SUB(CURDATE(), INTERVAL 30 DAY)) GROUP BY day ORDER BY day");
+    $stmt->execute();
+    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $start = new DateTime('-29 days');
+    for ($i = 0; $i < 30; $i++) {
+        $d = clone $start;
+        $d->modify("+{$i} day");
+        $safeData[$d->format('Y-m-d')] = 0;
+    }
+    foreach ($rows as $row) {
+        $safeData[$row['day']] = round((float)$row['hours'], 2);
+    }
+    $tmp = [];
+    foreach ($safeData as $day => $hours) {
+        $tmp[] = ['day' => $day, 'hours' => $hours];
+    }
+    $safeData = $tmp;
+} catch (Exception $e) {
+    $safeData = [];
+}
 ?>
 <!DOCTYPE html>
 <html class="h-full" lang="en">
@@ -32,11 +61,13 @@ $topics = $config['topics'] ?? [];
         </div>
         <div id="cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
         <div id="liveChart" class="mt-6"></div>
+        <div id="safeChart" class="mt-6"></div>
     </div>
 
     <script>
     const topics = <?php echo json_encode($topics); ?>;
     const host = <?php echo json_encode($host); ?>;
+    const safeData = <?php echo json_encode($safeData); ?>;
     const port = 8083; // default WebSocket port for MQTT
     const brokerHost = (host === 'localhost' || host === '127.0.0.1') ? window.location.hostname : host;
     const topicEntries = Object.entries(topics);
@@ -127,6 +158,16 @@ const icons = {
         title: { text: selectedName ? 'Live Sensor Data: ' + selectedName : 'Live Sensor Data' },
         xAxis: { type: 'datetime' },
         series: [{ name: 'Value', data: [] }]
+    });
+
+    const safeCategories = safeData.map(r => r.day);
+    const safeHours = safeData.map(r => parseFloat(r.hours));
+    Highcharts.chart('safeChart', {
+        chart: { type: 'column' },
+        title: { text: 'Observable Hours (Last 30 Days)' },
+        xAxis: { categories: safeCategories },
+        yAxis: { title: { text: 'Hours' } },
+        series: [{ name: 'Hours', data: safeHours }]
     });
 
     const modeToggle = document.getElementById('modeToggle');

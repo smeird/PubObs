@@ -28,3 +28,5 @@ Design decisions added after this file should be appended here for future refere
 21. The index page shows an indicator reflecting the MQTT connection status.
 
 
+21. The index page shows a bar chart of nightly observable hours for the last 30 days using safe data from `obs_weather`.
+
