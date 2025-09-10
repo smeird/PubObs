@@ -51,7 +51,7 @@ try {
     <!-- Highcharts -->
     <script src="https://code.highcharts.com/highcharts.js"></script>
 </head>
-<body class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-gray-900 text-gray-800 dark:text-gray-100 font-sans">
+<body class="min-h-screen bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-gray-800 dark:to-gray-900 text-gray-800 dark:text-gray-100 font-sans">
     <div class="max-w-6xl mx-auto p-6">
         <div class="flex justify-between items-center mb-8 bg-white/70 dark:bg-gray-800/70 backdrop-blur p-4 rounded-lg shadow">
             <h1 class="text-2xl font-bold">Wheathampstead AstroPhotography Conditions</h1>
@@ -64,15 +64,15 @@ try {
         <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
             <div id="liveChartContainer" class="bg-white/70 dark:bg-gray-800/70 p-4 rounded-xl shadow flex flex-col">
                 <div id="liveChart" class="flex-1 min-h-[16rem]"></div>
-                <button data-target="liveChartContainer" class="mt-2 px-2 py-1 bg-blue-500 text-white rounded fullscreen-btn">Full Screen</button>
+                <button data-target="liveChartContainer" class="mt-2 px-2 py-1 rounded bg-indigo-500 text-white hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700 fullscreen-btn">Full Screen</button>
             </div>
             <div id="safeChartContainer" class="bg-white/70 dark:bg-gray-800/70 p-4 rounded-xl shadow flex flex-col">
                 <div id="safeChart" class="flex-1 min-h-[16rem]"></div>
-                <button data-target="safeChartContainer" class="mt-2 px-2 py-1 bg-blue-500 text-white rounded fullscreen-btn">Full Screen</button>
+                <button data-target="safeChartContainer" class="mt-2 px-2 py-1 rounded bg-indigo-500 text-white hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700 fullscreen-btn">Full Screen</button>
             </div>
             <div id="envChartContainer" class="bg-white/70 dark:bg-gray-800/70 p-4 rounded-xl shadow flex flex-col">
                 <div id="envChart" class="flex-1 min-h-[16rem]"></div>
-                <button data-target="envChartContainer" class="mt-2 px-2 py-1 bg-blue-500 text-white rounded fullscreen-btn">Full Screen</button>
+                <button data-target="envChartContainer" class="mt-2 px-2 py-1 rounded bg-indigo-500 text-white hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700 fullscreen-btn">Full Screen</button>
             </div>
         </div>
     </div>
@@ -109,8 +109,8 @@ envTopicNames.forEach((name, idx) => {
                 <h2 class="text-xl font-semibold">${name}</h2>
 
                 <div class="mt-2 flex space-x-2">
-                    <a href="historical.php?topic=${encodeURIComponent(name)}" class="text-blue-500">History</a>
-                    <button class="px-2 py-1 bg-blue-500 text-white rounded show-chart" data-topic="${topic}" data-name="${name}">Show</button>
+                    <a href="historical.php?topic=${encodeURIComponent(name)}" class="text-indigo-600 dark:text-indigo-400 hover:underline">History</a>
+                    <button class="px-2 py-1 rounded bg-indigo-500 text-white hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700 show-chart" data-topic="${topic}" data-name="${name}">Show</button>
                 </div>
             </div>
             <div class="w-1/2 flex items-center justify-center">
