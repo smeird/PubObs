@@ -11,23 +11,42 @@ $dbPass = getenv('DB_PASS');
 $safeData = [];
 try {
     $pdo = new PDO("mysql:host=$dbHost;dbname=$dbName;charset=utf8", $dbUser, $dbPass, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
-    // `safe` stores seconds of safe observing time per record.
-    // Convert the summed seconds to hours for the chart.
-    $stmt = $pdo->prepare("SELECT DATE(FROM_UNIXTIME(dateTime)) AS day, SUM(safe)/3600 AS hours FROM obs_weather WHERE dateTime >= UNIX_TIMESTAMP(DATE_SUB(CURDATE(), INTERVAL 30 DAY)) GROUP BY day ORDER BY day");
+    // Fetch safe records for the last 30 days and compute hours where safe=1.
+    $stmt = $pdo->prepare("SELECT dateTime, safe FROM obs_weather WHERE dateTime >= UNIX_TIMESTAMP(DATE_SUB(CURDATE(), INTERVAL 30 DAY)) ORDER BY dateTime");
     $stmt->execute();
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Initialize array covering last 30 days with zero seconds.
     $start = new DateTime('-29 days');
     for ($i = 0; $i < 30; $i++) {
         $d = clone $start;
         $d->modify("+{$i} day");
         $safeData[$d->format('Y-m-d')] = 0;
     }
-    foreach ($rows as $row) {
-        $safeData[$row['day']] = round((float)$row['hours'], 2);
+
+    $count = count($rows);
+    for ($i = 0; $i < $count - 1; $i++) {
+        $currTime = (int)$rows[$i]['dateTime'];
+        $nextTime = (int)$rows[$i + 1]['dateTime'];
+        if ((int)$rows[$i]['safe'] === 1) {
+            $segmentStart = $currTime;
+            $segmentEnd = $nextTime;
+            while ($segmentStart < $segmentEnd) {
+                $day = date('Y-m-d', $segmentStart);
+                $dayStart = strtotime($day, $segmentStart);
+                $dayEnd = $dayStart + 86400;
+                $boundary = min($segmentEnd, $dayEnd);
+                if (isset($safeData[$day])) {
+                    $safeData[$day] += $boundary - $segmentStart;
+                }
+                $segmentStart = $boundary;
+            }
+        }
     }
+
     $tmp = [];
-    foreach ($safeData as $day => $hours) {
-        $tmp[] = ['day' => $day, 'hours' => $hours];
+    foreach ($safeData as $day => $seconds) {
+        $tmp[] = ['day' => $day, 'hours' => round($seconds / 3600, 2)];
     }
     $safeData = $tmp;
 } catch (Exception $e) {
