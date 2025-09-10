@@ -9,7 +9,7 @@ Website that publicly shows observatory sensor data. The site displays live and 
 - Highcharts for interactive graphs
 - Tabulator for data tables
 - Tailwind CSS default styling with light and dark modes
-- Index page lists all live data sources with links to historical views and shows a live updating graph
+- Index page lists all live data sources with links to historical views, shows a live updating graph, and displays nightly observable hours from the past 30 days
 
 ## Sensor Data Tables
 

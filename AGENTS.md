@@ -26,3 +26,5 @@ Design decisions added after this file should be appended here for future refere
 19. Historical weather data is now stored in a MySQL table named `obs_weather` with columns `dateTime`, `clouds`, `temp`, `wind`, `gust`, `rain`, `light`, `switch`, `safe`, `hum`, and `dewp`.
 20. The index page displays current MQTT values in a responsive grid of Tailwind CSS cards.
 
+21. The index page shows a bar chart of nightly observable hours for the last 30 days using safe data from `obs_weather`.
+
