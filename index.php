@@ -25,7 +25,10 @@ $topics = $config['topics'] ?? [];
     <div class="container mx-auto p-4">
         <div class="flex justify-between items-center mb-4">
             <h1 class="text-2xl font-bold">PubObs Live Data</h1>
-            <button id="modeToggle" class="px-2 py-1 border rounded">Toggle Mode</button>
+            <div class="flex items-center space-x-2">
+                <span id="mqttStatus" class="text-sm text-yellow-600">Connecting...</span>
+                <button id="modeToggle" class="px-2 py-1 border rounded">Toggle Mode</button>
+            </div>
         </div>
         <div id="cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
         <div id="liveChart" class="mt-6"></div>
@@ -35,6 +38,7 @@ $topics = $config['topics'] ?? [];
     const topics = <?php echo json_encode($topics); ?>;
     const host = <?php echo json_encode($host); ?>;
     const port = 8083; // default WebSocket port for MQTT
+    const brokerHost = (host === 'localhost' || host === '127.0.0.1') ? window.location.hostname : host;
     const topicEntries = Object.entries(topics);
     let selectedName = topicEntries.length ? topicEntries[0][0] : '';
     let selectedTopic = topicEntries.length ? topicEntries[0][1] : null;
@@ -80,10 +84,13 @@ const icons = {
         }
     });
 
-    const client = new Paho.MQTT.Client(host, port, "webclient-" + Math.random());
+    const statusEl = document.getElementById('mqttStatus');
+    const client = new Paho.MQTT.Client(brokerHost, port, "webclient-" + Math.random());
 
     function onConnectionLost() {
         console.log('Connection lost');
+        statusEl.textContent = 'Disconnected';
+        statusEl.className = 'text-sm text-red-600';
     }
     function onMessageArrived(message) {
         const topic = message.destinationName;
@@ -100,12 +107,20 @@ const icons = {
         }
     }
 
+    function onConnect() {
+        statusEl.textContent = 'Connected';
+        statusEl.className = 'text-sm text-green-600';
+        Object.values(topics).forEach(t => client.subscribe(t));
+    }
+    function onFail() {
+        statusEl.textContent = 'Disconnected';
+        statusEl.className = 'text-sm text-red-600';
+    }
+
     client.onConnectionLost = onConnectionLost;
     client.onMessageArrived = onMessageArrived;
 
-    client.connect({ onSuccess: () => {
-        Object.values(topics).forEach(t => client.subscribe(t));
-    }});
+    client.connect({ onSuccess: onConnect, onFailure: onFail, useSSL: location.protocol === 'https:' });
 
     const chart = Highcharts.chart('liveChart', {
         chart: { type: 'spline' },
