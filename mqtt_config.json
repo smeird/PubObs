@@ -5,7 +5,7 @@
     "rain": { "topic": "Observatory/rain","green": 4000, "condition": "above","unit": "" },
     "light": { "topic": "Observatory/light", "green": 1000, "condition": "above", "unit": "lux" },
     "clouds": { "topic": "Observatory/clouds","green": -17, "condition": "above","unit": "°C" },
-    "safe": { "topic": "Observatory/safe", "green": 0, "condition": "above",unit": "" },
+    "safe": { "topic": "Observatory/safe", "green": 0, "condition": "above","unit": "" },
     "sqm": { "topic": "Observatory/sqm", "green": 12, "condition": "above","unit": "mag" },
     "humidity": { "topic": "Observatory/hum", "green": 90, "condition": "below","unit": "%" },
     "dewpoint": { "topic": "Observatory/dewp", "unit": "°C" }
