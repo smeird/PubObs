@@ -1,4 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
   <rect width="64" height="64" rx="8" ry="8" fill="#1e3a8a"/>
-  <text x="32" y="44" font-size="40" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif">PO</text>
+  <g fill="#ffffff" transform="translate(8,8)">
+    <!-- telescope body -->
+    <rect x="8" y="12" width="30" height="6" transform="rotate(-20 8 12)"/>
+    <!-- lens -->
+    <circle cx="9" cy="11" r="6"/>
+    <!-- tripod legs -->
+    <rect x="28" y="24" width="4" height="16"/>
+    <rect x="24" y="24" width="4" height="16" transform="rotate(20 24 24)"/>
+    <rect x="32" y="24" width="4" height="16" transform="rotate(-20 32 24)"/>
+  </g>
 </svg>
