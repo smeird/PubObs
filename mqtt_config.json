@@ -3,7 +3,7 @@
   "topics": {
     "temperature": { "topic": "Observatory/temp","green": 0, "condition": "above","unit": "°C" },
     "rain": { "topic": "Observatory/rain","green": 4000, "condition": "above","unit": "" },
-    "light": { "topic": "Observatory/light", "green": 1000, "condition": "above", "unit": "lux" },
+    "light": { "topic": "Observatory/light", "green": 7000, "condition": "above", "unit": "lux" },
     "clouds": { "topic": "Observatory/clouds","green": -17, "condition": "above","unit": "°C" },
     "safe": { "topic": "Observatory/safe", "green": 0, "condition": "above","unit": "" },
     "sqm": { "topic": "Observatory/sqm", "green": 12, "condition": "above","unit": "mag" },
