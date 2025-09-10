@@ -68,6 +68,7 @@ try {
 </head>
 <body class="h-full bg-white text-gray-800 dark:bg-gray-900 dark:text-gray-100">
     <div class="container mx-auto p-4">
+        <a href="index.php" class="mb-4 inline-block text-blue-600 dark:text-blue-400 underline">&larr; Back to Home</a>
         <div class="flex justify-between items-center mb-4">
             <h1 class="text-2xl font-bold">History: <?php echo htmlspecialchars($key); ?></h1>
             <button id="modeToggle" class="px-2 py-1 border rounded">Switch to Dark Mode</button>
