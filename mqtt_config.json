@@ -1,13 +1,14 @@
 {
   "host": "mqtt.smeird.com",
   "topics": {
-    "temperature": "Observatory/temp",
-    "rain": "Observatory/rain",
-    "light": "Observatory/light",
-    "clouds": "Observatory/clouds",
-    "safe": "Observatory/safe",
-    "sqm": "Observatory/sqm",
-    "humidity": "Observatory/hum",
-    "dewpoint": "Observatory/dewp"
+    "temperature": { "topic": "Observatory/temp" },
+    "rain": { "topic": "Observatory/rain" },
+    "light": { "topic": "Observatory/light", "green": 4000, "condition": "above" },
+    "clouds": { "topic": "Observatory/clouds" },
+    "safe": { "topic": "Observatory/safe" },
+    "sqm": { "topic": "Observatory/sqm" },
+    "humidity": { "topic": "Observatory/hum" },
+    "dewpoint": { "topic": "Observatory/dewp" }
   }
 }
+
