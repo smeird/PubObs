@@ -64,27 +64,27 @@ try {
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://code.highcharts.com/highcharts.js"></script>
 </head>
-<body class="h-full bg-white text-gray-800 dark:bg-gray-900 dark:text-gray-100">
-    <div class="container mx-auto p-4">
-        <a href="index.php" class="mb-4 inline-block text-blue-600 dark:text-blue-400 underline">&larr; Back to Home</a>
-        <div class="flex justify-between items-center mb-4">
+<body class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-gray-900 text-gray-800 dark:text-gray-100 font-sans">
+    <div class="max-w-4xl mx-auto p-6 bg-white/80 dark:bg-gray-800/80 backdrop-blur rounded-xl shadow-lg">
+        <a href="index.php" class="mb-4 inline-block text-indigo-600 dark:text-indigo-400 hover:underline">&larr; Back to Home</a>
+        <div class="flex justify-between items-center mb-6 bg-white/70 dark:bg-gray-800/70 backdrop-blur p-4 rounded-lg shadow">
             <h1 class="text-2xl font-bold">History: <?php echo htmlspecialchars($key); ?></h1>
-            <button id="modeToggle" class="px-2 py-1 border rounded">Switch to Dark Mode</button>
+            <button id="modeToggle" class="px-3 py-1 rounded bg-indigo-500 text-white hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700">Switch to Dark Mode</button>
         </div>
-        <form method="get" class="mb-4 flex flex-wrap items-end gap-2">
+        <form method="get" class="mb-6 flex flex-wrap items-end gap-4">
             <input type="hidden" name="topic" value="<?php echo htmlspecialchars($key); ?>">
             <label class="flex flex-col">
                 <span>Start</span>
-                <input type="date" name="start" value="<?php echo htmlspecialchars($start); ?>" class="border rounded px-2 py-1">
+                <input type="date" name="start" value="<?php echo htmlspecialchars($start); ?>" class="border rounded px-2 py-1 bg-white dark:bg-gray-700">
             </label>
             <label class="flex flex-col">
                 <span>End</span>
-                <input type="date" name="end" value="<?php echo htmlspecialchars($end); ?>" class="border rounded px-2 py-1">
+                <input type="date" name="end" value="<?php echo htmlspecialchars($end); ?>" class="border rounded px-2 py-1 bg-white dark:bg-gray-700">
             </label>
-            <button type="submit" class="px-2 py-1 border rounded">Apply</button>
+            <button type="submit" class="px-3 py-1 rounded bg-indigo-500 text-white hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700">Apply</button>
         </form>
-        <div id="histChart" class="mb-6"></div>
-        <button id="downloadCsv" class="px-2 py-1 border rounded">Download CSV</button>
+        <div id="histChart" class="mb-6 bg-white/70 dark:bg-gray-800/70 p-4 rounded-xl shadow"></div>
+        <button id="downloadCsv" class="px-3 py-1 rounded bg-indigo-500 text-white hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700">Download CSV</button>
     </div>
 
     <script>
