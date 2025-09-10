@@ -5,11 +5,45 @@ Website that publicly shows observatory sensor data. The site displays live and 
 ## Features
 
 - Live data via MQTT
- - Historical data stored in a local MySQL table `obs_weather`
+- Historical data stored in a local MySQL table `obs_weather`
 - Highcharts for interactive graphs
 - Tabulator for data tables
 - Tailwind CSS default styling with light and dark modes
 - Index page lists all live data sources with links to historical views and shows a live updating graph
+
+## Sensor Data Tables
+
+- `obs_weather` stores weather readings, including SQM values in the `light` column.
+- `obs_light` stores readings from a separate light sensor with a `light` column.
+
+### Retrieve both sensors
+
+Use SQL joins or unions to combine the two tables without altering their schemas:
+
+```sql
+SELECT w.dateTime,
+       w.light AS sqm,
+       l.light AS light
+FROM obs_weather AS w
+JOIN obs_light   AS l
+      ON w.dateTime = l.dateTime
+ORDER BY w.dateTime DESC;
+```
+
+```sql
+SELECT dateTime,
+       'SQM'   AS sensor,
+       light   AS reading
+FROM obs_weather
+
+UNION ALL
+
+SELECT dateTime,
+       'Light',
+       light
+FROM obs_light
+ORDER BY dateTime DESC;
+```
 
 ## Configuration
 
