@@ -11,23 +11,42 @@ $dbPass = getenv('DB_PASS');
 $safeData = [];
 try {
     $pdo = new PDO("mysql:host=$dbHost;dbname=$dbName;charset=utf8", $dbUser, $dbPass, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
-    // `safe` stores seconds of safe observing time per record.
-    // Convert the summed seconds to hours for the chart.
-    $stmt = $pdo->prepare("SELECT DATE(FROM_UNIXTIME(dateTime)) AS day, SUM(safe)/3600 AS hours FROM obs_weather WHERE dateTime >= UNIX_TIMESTAMP(DATE_SUB(CURDATE(), INTERVAL 30 DAY)) GROUP BY day ORDER BY day");
+    // Fetch safe records for the last 30 days and compute hours where safe=1.
+    $stmt = $pdo->prepare("SELECT dateTime, safe FROM obs_weather WHERE dateTime >= UNIX_TIMESTAMP(DATE_SUB(CURDATE(), INTERVAL 30 DAY)) ORDER BY dateTime");
     $stmt->execute();
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Initialize array covering last 30 days with zero seconds.
     $start = new DateTime('-29 days');
     for ($i = 0; $i < 30; $i++) {
         $d = clone $start;
         $d->modify("+{$i} day");
         $safeData[$d->format('Y-m-d')] = 0;
     }
-    foreach ($rows as $row) {
-        $safeData[$row['day']] = round((float)$row['hours'], 2);
+
+    $count = count($rows);
+    for ($i = 0; $i < $count - 1; $i++) {
+        $currTime = (int)$rows[$i]['dateTime'];
+        $nextTime = (int)$rows[$i + 1]['dateTime'];
+        if ((int)$rows[$i]['safe'] === 1) {
+            $segmentStart = $currTime;
+            $segmentEnd = $nextTime;
+            while ($segmentStart < $segmentEnd) {
+                $day = date('Y-m-d', $segmentStart);
+                $dayStart = strtotime($day, $segmentStart);
+                $dayEnd = $dayStart + 86400;
+                $boundary = min($segmentEnd, $dayEnd);
+                if (isset($safeData[$day])) {
+                    $safeData[$day] += $boundary - $segmentStart;
+                }
+                $segmentStart = $boundary;
+            }
+        }
     }
+
     $tmp = [];
-    foreach ($safeData as $day => $hours) {
-        $tmp[] = ['day' => $day, 'hours' => $hours];
+    foreach ($safeData as $day => $seconds) {
+        $tmp[] = ['day' => $day, 'hours' => round($seconds / 3600, 2)];
     }
     $safeData = $tmp;
 } catch (Exception $e) {
@@ -54,7 +73,10 @@ try {
 <body class="min-h-screen bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-gray-800 dark:to-gray-900 text-gray-800 dark:text-gray-100 font-sans">
     <div class="max-w-6xl mx-auto p-6">
         <div class="flex justify-between items-center mb-8 bg-white/70 dark:bg-gray-800/70 backdrop-blur p-4 rounded-lg shadow">
-            <h1 class="text-2xl font-bold">Wheathampstead AstroPhotography Conditions</h1>
+            <h1 class="flex items-center text-2xl font-bold">
+                <img src="favicon.svg" alt="" class="w-8 h-8 mr-2">
+                Wheathampstead AstroPhotography Conditions
+            </h1>
             <div class="flex items-center space-x-2">
                 <span id="mqttStatus" class="text-sm text-yellow-600">Connecting...</span>
                 <button id="modeToggle" class="px-3 py-1 rounded bg-indigo-500 text-white hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700">Switch to Dark Mode</button>

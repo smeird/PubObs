@@ -37,3 +37,5 @@ Design decisions added after this file should be appended here for future refere
 28. The site title is "Wheathampstead AstroPhotography Conditions".
 29. `mqtt_config.json` topics can include a `green` threshold and `condition` (`above` or `below`) that turns the index page card border green when the incoming MQTT value meets the rule.
 30. The index page displays an icon before each MQTT topic name in its card.
+31. Observable hours are calculated by summing time intervals where the `safe` field equals 1.
+
