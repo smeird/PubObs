@@ -35,3 +35,5 @@ Design decisions added after this file should be appended here for future refere
 
 23. Historical pages default to the last week of data and provide controls to view any date range in the database.
 
+24. The index page loads the Paho MQTT library with multiple fallbacks and automatically reconnects with exponential backoff if the MQTT connection is lost.
+
