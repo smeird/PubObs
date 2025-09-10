@@ -23,6 +23,15 @@ Database credentials are provided to Apache via environment variables:
 - `DB_USER`
 - `DB_PASS`
 
+Set these variables in your Apache site configuration using `SetEnv` directives, for example:
+
+```
+SetEnv DB_HOST "localhost"
+SetEnv DB_NAME "pubobs"
+SetEnv DB_USER "pubobs_user"
+SetEnv DB_PASS "secret"
+```
+
 ## Site Pages
 
 ```mermaid
