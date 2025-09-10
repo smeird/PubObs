@@ -61,9 +61,20 @@ try {
             </div>
         </div>
         <div id="cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
-        <div id="liveChart" class="mt-6 bg-white/70 dark:bg-gray-800/70 p-4 rounded-xl shadow"></div>
-        <div id="safeChart" class="mt-6 bg-white/70 dark:bg-gray-800/70 p-4 rounded-xl shadow"></div>
-        <div id="envChart" class="mt-6 bg-white/70 dark:bg-gray-800/70 p-4 rounded-xl shadow"></div>
+        <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div id="liveChartContainer" class="bg-white/70 dark:bg-gray-800/70 p-4 rounded-xl shadow flex flex-col">
+                <div id="liveChart" class="h-64"></div>
+                <button data-target="liveChartContainer" class="mt-2 px-2 py-1 bg-blue-500 text-white rounded fullscreen-btn">Full Screen</button>
+            </div>
+            <div id="safeChartContainer" class="bg-white/70 dark:bg-gray-800/70 p-4 rounded-xl shadow flex flex-col">
+                <div id="safeChart" class="h-64"></div>
+                <button data-target="safeChartContainer" class="mt-2 px-2 py-1 bg-blue-500 text-white rounded fullscreen-btn">Full Screen</button>
+            </div>
+            <div id="envChartContainer" class="bg-white/70 dark:bg-gray-800/70 p-4 rounded-xl shadow flex flex-col">
+                <div id="envChart" class="h-64"></div>
+                <button data-target="envChartContainer" class="mt-2 px-2 py-1 bg-blue-500 text-white rounded fullscreen-btn">Full Screen</button>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -224,6 +235,24 @@ envTopicNames.forEach((name, idx) => {
             { name: 'Light', data: [] },
             { name: 'SQM', data: [] }
         ]
+    });
+
+    document.querySelectorAll('.fullscreen-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const target = document.getElementById(btn.dataset.target);
+            if (document.fullscreenElement === target) {
+                document.exitFullscreen();
+            } else {
+                target.requestFullscreen();
+            }
+        });
+    });
+
+    document.addEventListener('fullscreenchange', () => {
+        document.querySelectorAll('.fullscreen-btn').forEach(btn => {
+            const target = document.getElementById(btn.dataset.target);
+            btn.textContent = document.fullscreenElement === target ? 'Exit Full Screen' : 'Full Screen';
+        });
     });
 
     const modeToggle = document.getElementById('modeToggle');
