@@ -54,7 +54,10 @@ try {
 <body class="min-h-screen bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-gray-800 dark:to-gray-900 text-gray-800 dark:text-gray-100 font-sans">
     <div class="max-w-6xl mx-auto p-6">
         <div class="flex justify-between items-center mb-8 bg-white/70 dark:bg-gray-800/70 backdrop-blur p-4 rounded-lg shadow">
-            <h1 class="text-2xl font-bold">Wheathampstead AstroPhotography Conditions</h1>
+            <h1 class="flex items-center text-2xl font-bold">
+                <img src="favicon.svg" alt="" class="w-8 h-8 mr-2">
+                Wheathampstead AstroPhotography Conditions
+            </h1>
             <div class="flex items-center space-x-2">
                 <span id="mqttStatus" class="text-sm text-yellow-600">Connecting...</span>
                 <button id="modeToggle" class="px-3 py-1 rounded bg-indigo-500 text-white hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700">Switch to Dark Mode</button>
