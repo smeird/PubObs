@@ -55,7 +55,7 @@ $topics = $config['topics'] ?? [];
     });
 
     const host = <?php echo json_encode($host); ?>;
-    const port = 9001; // default WebSocket port for MQTT
+    const port = 8083; // default WebSocket port for MQTT
     const client = new Paho.MQTT.Client(host, port, "webclient-" + Math.random());
 
     function onConnectionLost() {
