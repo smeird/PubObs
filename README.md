@@ -15,6 +15,20 @@ Website that publicly shows observatory sensor data. The site displays live and 
 
 MQTT host and topic names are defined in `mqtt_config.json`. Update this file to match your local MQTT broker settings.
 
+Database credentials are provided to Apache via environment variables:
+
+- `DB_HOST`
+- `DB_NAME`
+- `DB_USER`
+- `DB_PASS`
+
+## Site Pages
+
+```mermaid
+flowchart LR
+    Index["index.php"] --> Hist["historical.php"]
+```
+
 ## Architecture
 
 ```mermaid
