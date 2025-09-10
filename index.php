@@ -158,14 +158,13 @@ const envSeries = envTopicNames.map(name => {
                 <h2 class="text-xl font-semibold flex items-center"><span class="mr-2">${icon}</span>${name}</h2>
 
                 <div class="mt-2 flex space-x-2">
-                    <a href="historical.php?topic=${encodeURIComponent(name)}" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300" aria-label="View History">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                            <circle cx="12" cy="12" r="9" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 7v5l3 1.5" />
+                    <a href="historical.php?topic=${encodeURIComponent(name)}" class="p-1 rounded bg-indigo-500 text-white hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700 inline-flex" aria-label="View History">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 3v18h18M6 15l4-4 3 3 7-7" />
                         </svg>
                     </a>
-                    <button class="p-2 rounded bg-indigo-500 text-white hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700 show-chart" data-topic="${topic}" data-name="${name}" aria-label="Show Live Chart">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <button class="p-1 rounded bg-indigo-500 text-white hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700 show-chart inline-flex items-center justify-center" data-topic="${topic}" data-name="${name}" aria-label="Show Live Chart">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12c1.607-4.205 5.64-7.25 9.75-7.25s8.143 3.045 9.75 7.25c-1.607 4.205-5.64 7.25-9.75 7.25S3.857 16.205 2.25 12z" />
                             <circle cx="12" cy="12" r="3" />
                         </svg>
