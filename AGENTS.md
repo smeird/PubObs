@@ -18,3 +18,5 @@ This file records design decisions and requirements for the PubObs website.
 14. README must include mermaid diagrams explaining the site and instructions on updating the website.
 
 Design decisions added after this file should be appended here for future reference.
+
+15. MQTT host and topic names are stored in `mqtt_config.json`.

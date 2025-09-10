@@ -1,0 +1,13 @@
+{
+  "host": "localhost",
+  "topics": {
+    "temperature": "Observatory/temp",
+    "rain": "Observatory/rain",
+    "light": "Observatory/light",
+    "clouds": "Observatory/clouds",
+    "safe": "Observatory/safe",
+    "sqm": "Observatory/sqm",
+    "humidity": "Observatory/hum",
+    "dewpoint": "Observatory/dewp"
+  }
+}
