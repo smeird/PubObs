@@ -14,6 +14,7 @@ Website that publicly shows observatory sensor data. The site displays live and 
 ## Configuration
 
 MQTT host and topic names are defined in `mqtt_config.json`. Update this file to match your local MQTT broker settings.
+The MQTT WebSocket port is 8083.
 
 Database credentials are provided to Apache via environment variables:
 
