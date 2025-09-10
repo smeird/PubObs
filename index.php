@@ -62,6 +62,7 @@ try {
         <div id="cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
         <div id="liveChart" class="mt-6"></div>
         <div id="safeChart" class="mt-6"></div>
+        <div id="envChart" class="mt-6"></div>
     </div>
 
     <script>
@@ -69,10 +70,16 @@ try {
     const host = <?php echo json_encode($host); ?>;
     const safeData = <?php echo json_encode($safeData); ?>;
     const port = 8083; // default WebSocket port for MQTT
-    const brokerHost = (host === 'localhost' || host === '127.0.0.1') ? window.location.hostname : host;
-    const topicEntries = Object.entries(topics);
-    let selectedName = topicEntries.length ? topicEntries[0][0] : '';
-    let selectedTopic = topicEntries.length ? topicEntries[0][1] : null;
+const brokerHost = (host === 'localhost' || host === '127.0.0.1') ? window.location.hostname : host;
+const topicEntries = Object.entries(topics);
+let selectedName = topicEntries.length ? topicEntries[0][0] : '';
+let selectedTopic = topicEntries.length ? topicEntries[0][1] : null;
+
+const envTopicNames = ['clouds', 'light', 'sqm'];
+const envSeriesMap = {};
+envTopicNames.forEach((name, idx) => {
+    if (topics[name]) envSeriesMap[topics[name]] = idx;
+});
 
     const cardsContainer = document.getElementById('cards');
     const sanitize = name => name.replace(/[^a-zA-Z0-9_-]/g, '_');
@@ -136,6 +143,11 @@ const icons = {
             const x = (new Date()).getTime();
             chart.series[0].addPoint([x, value], true, chart.series[0].data.length > 40);
         }
+        const envIndex = envSeriesMap[topic];
+        if (envIndex !== undefined) {
+            const x = (new Date()).getTime();
+            envChart.series[envIndex].addPoint([x, value], true, envChart.series[envIndex].data.length > 40);
+        }
     }
 
     function onConnect() {
@@ -168,6 +180,17 @@ const icons = {
         xAxis: { categories: safeCategories },
         yAxis: { title: { text: 'Hours' } },
         series: [{ name: 'Hours', data: safeHours }]
+    });
+
+    const envChart = Highcharts.chart('envChart', {
+        chart: { type: 'spline' },
+        title: { text: 'Realtime Clouds, Light, SQM' },
+        xAxis: { type: 'datetime' },
+        series: [
+            { name: 'Clouds', data: [] },
+            { name: 'Light', data: [] },
+            { name: 'SQM', data: [] }
+        ]
     });
 
     const modeToggle = document.getElementById('modeToggle');
