@@ -39,3 +39,5 @@ Design decisions added after this file should be appended here for future refere
 
 25. The index page loads the Paho MQTT library with multiple fallbacks and automatically reconnects with exponential backoff if the MQTT connection is lost.
 
+26. Historical page queries are capped at a maximum span of seven days to prevent excessive data loads.
+

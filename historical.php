@@ -27,9 +27,19 @@ $dbName = getenv('DB_NAME');
 $dbUser = getenv('DB_USER');
 $dbPass = getenv('DB_PASS');
 
-// Determine requested date range; default to the last 7 days
-$start = $_GET['start'] ?? date('Y-m-d', strtotime('-1 week'));
-$end   = $_GET['end']   ?? date('Y-m-d');
+// Determine requested date range; default to the last 7 days and cap span to one week
+$endParam = $_GET['end'] ?? null;
+$startParam = $_GET['start'] ?? null;
+$end   = $endParam ?: date('Y-m-d');
+$start = $startParam ?: date('Y-m-d', strtotime($end . ' -1 week'));
+
+$startTs = strtotime($start);
+$endTs   = strtotime($end);
+// If the requested range exceeds one week, limit to the most recent seven days
+if ($endTs - $startTs > 7 * 24 * 60 * 60) {
+    $startTs = $endTs - 7 * 24 * 60 * 60;
+    $start = date('Y-m-d', $startTs);
+}
 
 // Convert to timestamps compatible with the database
 $startDate = $start . ' 00:00:00';
