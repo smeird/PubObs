@@ -35,56 +35,43 @@ try {
 }
 ?>
 <!DOCTYPE html>
-<html lang="en" data-theme="dark" class="h-full">
+<html class="h-full" lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Wheathampstead AstroPhotography Conditions</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
-    <script>
-        const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-        document.documentElement.setAttribute('data-theme', systemTheme);
-    </script>
-    <!-- Tailwind CSS with daisyUI -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/daisyui@4.6.0/dist/full.min.js"></script>
     <script>
         tailwind.config = {
-            plugins: [daisyui],
-            daisyui: {
-                themes: ["light", "dark", "dracula"],
-                darkTheme: "dark",
-            },
+            darkMode: 'class',
         }
     </script>
     <!-- Highcharts -->
     <script src="https://code.highcharts.com/highcharts.js"></script>
 </head>
-<body class="min-h-screen bg-base-200 text-base-content font-sans">
+<body class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-gray-900 text-gray-800 dark:text-gray-100 font-sans">
     <div class="max-w-6xl mx-auto p-6">
-
-        <div class="flex justify-between items-center mb-8 bg-base-100/70 backdrop-blur p-4 rounded-lg shadow">
-            <h1 class="text-2xl font-bold">PubObs Live Data</h1>
-
+        <div class="flex justify-between items-center mb-8 bg-white/70 dark:bg-gray-800/70 backdrop-blur p-4 rounded-lg shadow">
+            <h1 class="text-2xl font-bold">Wheathampstead AstroPhotography Conditions</h1>
             <div class="flex items-center space-x-2">
-                <span id="mqttStatus" class="text-sm text-warning">Connecting...</span>
-                <button id="themeToggle" class="px-3 py-1 rounded bg-indigo-500 text-white hover:bg-indigo-600">Switch to Dracula Theme</button>
+                <span id="mqttStatus" class="text-sm text-yellow-600">Connecting...</span>
+                <button id="modeToggle" class="px-3 py-1 rounded bg-indigo-500 text-white hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700">Switch to Dark Mode</button>
             </div>
         </div>
         <div id="cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
         <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-
-            <div id="liveChartContainer" class="bg-base-100/70 p-4 rounded-xl shadow flex flex-col">
-                <div id="liveChart" class="h-64"></div>
+            <div id="liveChartContainer" class="bg-white/70 dark:bg-gray-800/70 p-4 rounded-xl shadow flex flex-col">
+                <div id="liveChart" class="flex-1 min-h-[16rem]"></div>
                 <button data-target="liveChartContainer" class="mt-2 px-2 py-1 bg-blue-500 text-white rounded fullscreen-btn">Full Screen</button>
             </div>
-            <div id="safeChartContainer" class="bg-base-100/70 p-4 rounded-xl shadow flex flex-col">
-                <div id="safeChart" class="h-64"></div>
+            <div id="safeChartContainer" class="bg-white/70 dark:bg-gray-800/70 p-4 rounded-xl shadow flex flex-col">
+                <div id="safeChart" class="flex-1 min-h-[16rem]"></div>
                 <button data-target="safeChartContainer" class="mt-2 px-2 py-1 bg-blue-500 text-white rounded fullscreen-btn">Full Screen</button>
             </div>
-            <div id="envChartContainer" class="bg-base-100/70 p-4 rounded-xl shadow flex flex-col">
-                <div id="envChart" class="h-64"></div>
-
+            <div id="envChartContainer" class="bg-white/70 dark:bg-gray-800/70 p-4 rounded-xl shadow flex flex-col">
+                <div id="envChart" class="flex-1 min-h-[16rem]"></div>
                 <button data-target="envChartContainer" class="mt-2 px-2 py-1 bg-blue-500 text-white rounded fullscreen-btn">Full Screen</button>
             </div>
         </div>
@@ -115,15 +102,14 @@ envTopicNames.forEach((name, idx) => {
         const id = 'value-' + sanitize(name);
         const card = document.createElement('div');
 
-
-        card.className = 'bg-base-100 p-4 rounded shadow h-32 flex';
-
+        card.id = 'card-' + sanitize(name);
+        card.className = 'bg-gray-100 dark:bg-gray-800 p-4 rounded shadow h-32 flex border-4 border-transparent';
         card.innerHTML = `
             <div class="flex flex-col justify-between w-1/2">
                 <h2 class="text-xl font-semibold">${name}</h2>
 
                 <div class="mt-2 flex space-x-2">
-                    <a href="historical.php?topic=${encodeURIComponent(name)}" class="text-primary">History</a>
+                    <a href="historical.php?topic=${encodeURIComponent(name)}" class="text-blue-500">History</a>
                     <button class="px-2 py-1 bg-blue-500 text-white rounded show-chart" data-topic="${topic}" data-name="${name}">Show</button>
                 </div>
             </div>
@@ -155,7 +141,7 @@ envTopicNames.forEach((name, idx) => {
 
     function scheduleReconnect() {
         const delay = Math.min(1000 * Math.pow(2, connectAttempts), 30000);
-        updateStatus('Reconnecting...', 'text-warning');
+        updateStatus('Reconnecting...', 'text-yellow-600');
         setTimeout(() => {
             connectAttempts++;
             connectClient();
@@ -165,7 +151,7 @@ envTopicNames.forEach((name, idx) => {
     function connectClient() {
         if (!window.mqtt) {
             console.warn('MQTT.js library is not loaded');
-            updateStatus('MQTT unavailable', 'text-error');
+            updateStatus('MQTT unavailable', 'text-red-600');
             return;
         }
         const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
@@ -180,7 +166,7 @@ envTopicNames.forEach((name, idx) => {
 
     function onConnectionLost() {
         console.log('Connection lost');
-        updateStatus('Disconnected', 'text-error');
+        updateStatus('Disconnected', 'text-red-600');
         scheduleReconnect();
     }
     function onMessageArrived(topic, message) {
@@ -216,7 +202,7 @@ envTopicNames.forEach((name, idx) => {
         }
     }
     function onConnect() {
-        updateStatus('Connected', 'text-success');
+        updateStatus('Connected', 'text-green-600');
         connectAttempts = 0;
         Object.values(topics).forEach(cfg => client.subscribe(cfg.topic));
     }
@@ -224,7 +210,7 @@ envTopicNames.forEach((name, idx) => {
     function loadMQTT(urls, idx = 0) {
         if (idx >= urls.length) {
             console.warn('MQTT.js library failed to load');
-            updateStatus('MQTT unavailable', 'text-error');
+            updateStatus('MQTT unavailable', 'text-red-600');
             return;
         }
         const script = document.createElement('script');
@@ -286,53 +272,33 @@ envTopicNames.forEach((name, idx) => {
         Highcharts.charts.forEach(c => { if (c) c.reflow(); });
     });
 
-    const themeToggle = document.getElementById('themeToggle');
-
-    const themeColors = {
-        light: { text: '#1F2937', bg: '#FFFFFF', grid: '#e5e7eb', series: ['#2563EB', '#047857', '#DC2626'] },
-        dark: { text: '#F9FAFB', bg: '#1f2937', grid: '#374151', series: ['#3b82f6', '#10b981', '#ef4444'] },
-        dracula: { text: '#F8F8F2', bg: '#282A36', grid: '#44475a', series: ['#BD93F9', '#50FA7B', '#FF5555'] }
-    };
+    const modeToggle = document.getElementById('modeToggle');
 
     function updateChartsTheme() {
-        const theme = document.documentElement.getAttribute('data-theme') || 'dark';
-        const colors = themeColors[theme] || themeColors.dark;
-        [chart, safeChart, envChart].forEach(c => {
-            c.update({
-                chart: { backgroundColor: colors.bg },
-                title: { style: { color: colors.text } },
-                xAxis: { labels: { style: { color: colors.text } }, gridLineColor: colors.grid, lineColor: colors.text },
-                yAxis: { labels: { style: { color: colors.text } }, title: { style: { color: colors.text } }, gridLineColor: colors.grid, lineColor: colors.text },
-                legend: { itemStyle: { color: colors.text } }
-            }, false);
-            c.series.forEach((s, i) => s.update({ color: colors.series[i % colors.series.length] }, false));
-            c.redraw();
-        });
+        const isDark = document.documentElement.classList.contains('dark');
+        const textColor = isDark ? '#F9FAFB' : '#1F2937';
+        const bgColor = isDark ? '#1f2937' : '#FFFFFF';
+        const gridColor = isDark ? '#374151' : '#e5e7eb';
+        [chart, safeChart, envChart].forEach(c => c.update({
+            chart: { backgroundColor: bgColor },
+            title: { style: { color: textColor } },
+            xAxis: { labels: { style: { color: textColor } }, gridLineColor: gridColor, lineColor: textColor },
+            yAxis: { labels: { style: { color: textColor } }, title: { style: { color: textColor } }, gridLineColor: gridColor, lineColor: textColor },
+            legend: { itemStyle: { color: textColor } }
+        }, false));
+        [chart, safeChart, envChart].forEach(c => c.redraw());
     }
 
-    function setTheme(theme) {
-        document.documentElement.setAttribute('data-theme', theme);
-        updateToggleText();
+    function updateModeText() {
+        modeToggle.textContent = document.documentElement.classList.contains('dark') ? 'Switch to Light Mode' : 'Switch to Dark Mode';
+    }
+    modeToggle.addEventListener('click', () => {
+        document.documentElement.classList.toggle('dark');
+        updateModeText();
         updateChartsTheme();
-    }
-
-    function updateToggleText() {
-        const current = document.documentElement.getAttribute('data-theme');
-        themeToggle.textContent = current === 'dracula' ? 'Switch to Dark Theme' : 'Switch to Dracula Theme';
-    }
-
-    themeToggle.addEventListener('click', () => {
-        const current = document.documentElement.getAttribute('data-theme');
-        if (current === 'light') {
-            setTheme('dark');
-        } else if (current === 'dark') {
-            setTheme('dracula');
-        } else {
-            setTheme('dark');
-        }
     });
 
-    updateToggleText();
+    updateModeText();
     updateChartsTheme();
     </script>
 </body>
