@@ -63,15 +63,15 @@ try {
         <div id="cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
         <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
             <div id="liveChartContainer" class="bg-white/70 dark:bg-gray-800/70 p-4 rounded-xl shadow flex flex-col">
-                <div id="liveChart" class="h-64"></div>
+                <div id="liveChart" class="flex-1 min-h-[16rem]"></div>
                 <button data-target="liveChartContainer" class="mt-2 px-2 py-1 bg-blue-500 text-white rounded fullscreen-btn">Full Screen</button>
             </div>
             <div id="safeChartContainer" class="bg-white/70 dark:bg-gray-800/70 p-4 rounded-xl shadow flex flex-col">
-                <div id="safeChart" class="h-64"></div>
+                <div id="safeChart" class="flex-1 min-h-[16rem]"></div>
                 <button data-target="safeChartContainer" class="mt-2 px-2 py-1 bg-blue-500 text-white rounded fullscreen-btn">Full Screen</button>
             </div>
             <div id="envChartContainer" class="bg-white/70 dark:bg-gray-800/70 p-4 rounded-xl shadow flex flex-col">
-                <div id="envChart" class="h-64"></div>
+                <div id="envChart" class="flex-1 min-h-[16rem]"></div>
                 <button data-target="envChartContainer" class="mt-2 px-2 py-1 bg-blue-500 text-white rounded fullscreen-btn">Full Screen</button>
             </div>
         </div>
@@ -85,23 +85,25 @@ try {
 const brokerHost = (host === 'localhost' || host === '127.0.0.1') ? window.location.hostname : host;
 const topicEntries = Object.entries(topics);
 let selectedName = topicEntries.length ? topicEntries[0][0] : '';
-let selectedTopic = topicEntries.length ? topicEntries[0][1] : null;
+let selectedTopic = topicEntries.length ? topicEntries[0][1].topic : null;
 
 const envTopicNames = ['clouds', 'light', 'sqm'];
 const envSeriesMap = {};
 envTopicNames.forEach((name, idx) => {
-    if (topics[name]) envSeriesMap[topics[name]] = idx;
+    if (topics[name]) envSeriesMap[topics[name].topic] = idx;
 });
 
     const cardsContainer = document.getElementById('cards');
     cardsContainer.innerHTML = '';
     const sanitize = name => name.replace(/[^a-zA-Z0-9_-]/g, '_');
 
-    topicEntries.forEach(([name, topic]) => {
+    topicEntries.forEach(([name, cfg]) => {
+        const topic = cfg.topic;
         const id = 'value-' + sanitize(name);
         const card = document.createElement('div');
 
-        card.className = 'bg-gray-100 dark:bg-gray-800 p-4 rounded shadow h-32 flex';
+        card.id = 'card-' + sanitize(name);
+        card.className = 'bg-gray-100 dark:bg-gray-800 p-4 rounded shadow h-32 flex border-4 border-transparent';
         card.innerHTML = `
             <div class="flex flex-col justify-between w-1/2">
                 <h2 class="text-xl font-semibold">${name}</h2>
@@ -169,11 +171,25 @@ envTopicNames.forEach((name, idx) => {
     }
     function onMessageArrived(topic, message) {
         const value = parseFloat(message.toString());
-        const entry = topicEntries.find(([, t]) => t === topic);
+        const entry = topicEntries.find(([, cfg]) => cfg.topic === topic);
         if (entry) {
-            const id = 'value-' + sanitize(entry[0]);
+            const [name, cfg] = entry;
+            const id = 'value-' + sanitize(name);
             const el = document.getElementById(id);
             if (el) { el.textContent = value; }
+            const card = document.getElementById('card-' + sanitize(name));
+            if (card && cfg.green !== undefined && cfg.condition) {
+                let match = false;
+                if (cfg.condition === 'above') match = value > cfg.green;
+                else if (cfg.condition === 'below') match = value < cfg.green;
+                if (match) {
+                    card.classList.remove('border-transparent');
+                    card.classList.add('border-green-500');
+                } else {
+                    card.classList.remove('border-green-500');
+                    card.classList.add('border-transparent');
+                }
+            }
         }
         if (topic === selectedTopic) {
             const x = (new Date()).getTime();
@@ -188,7 +204,7 @@ envTopicNames.forEach((name, idx) => {
     function onConnect() {
         updateStatus('Connected', 'text-green-600');
         connectAttempts = 0;
-        Object.values(topics).forEach(t => client.subscribe(t));
+        Object.values(topics).forEach(cfg => client.subscribe(cfg.topic));
     }
 
     function loadMQTT(urls, idx = 0) {
@@ -253,6 +269,7 @@ envTopicNames.forEach((name, idx) => {
             const target = document.getElementById(btn.dataset.target);
             btn.textContent = document.fullscreenElement === target ? 'Exit Full Screen' : 'Full Screen';
         });
+        Highcharts.charts.forEach(c => { if (c) c.reflow(); });
     });
 
     const modeToggle = document.getElementById('modeToggle');
