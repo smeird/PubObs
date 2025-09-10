@@ -35,6 +35,20 @@ try {
             }
             $prev = $row;
         }
+
+        // include time from the last row to year end
+        if ((int)$prev['safe'] === 1) {
+            $segmentStart = (int)$prev['dateTime'];
+            $segmentEnd = strtotime($end);
+            while ($segmentStart < $segmentEnd) {
+                $month = (int)date('n', $segmentStart);
+                $monthStart = strtotime(date('Y-m-01', $segmentStart));
+                $nextMonthStart = strtotime('+1 month', $monthStart);
+                $boundary = min($segmentEnd, $nextMonthStart);
+                $monthSeconds[$month] += $boundary - $segmentStart;
+                $segmentStart = $boundary;
+            }
+        }
     }
 } catch (Exception $e) {
     $monthSeconds = array_fill(1, 12, 0);

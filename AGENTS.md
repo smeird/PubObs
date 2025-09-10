@@ -42,3 +42,5 @@ Design decisions added after this file should be appended here for future refere
 33. Safe data aggregation processes database rows sequentially to limit memory usage.
 
 34. The site includes a `clear.php` page that charts monthly safe observing hours for a selected year and is linked from the index page.
+
+35. Safe-hour charts include time from the last record to the current period end to account for ongoing clear conditions.
