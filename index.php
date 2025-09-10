@@ -162,7 +162,7 @@ const icons = {
         statusEl.className = 'text-sm text-red-600';
     }
 
-    if (typeof Paho !== 'undefined' && Paho.MQTT && Paho.MQTT.Client) {
+    if (window.Paho?.MQTT?.Client) {
         client = new Paho.MQTT.Client(brokerHost, port, "webclient-" + Math.random());
         client.onConnectionLost = onConnectionLost;
         client.onMessageArrived = onMessageArrived;
