@@ -55,45 +55,55 @@ try {
 }
 ?>
 <!DOCTYPE html>
-<html class="h-full" lang="en">
+<html lang="en" data-theme="dark" class="h-full">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>History: <?php echo htmlspecialchars($key); ?> - Wheathampstead AstroPhotography Conditions</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <script>
+        const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', systemTheme);
+    </script>
+    <!-- Tailwind CSS with daisyUI -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/daisyui@4.6.0/dist/full.min.js"></script>
     <script>
         tailwind.config = {
-            darkMode: 'class',
+            plugins: [daisyui],
+            daisyui: {
+                themes: ["light", "dark", "dracula"],
+                darkTheme: "dark",
+            },
         }
     </script>
     <script src="https://code.highcharts.com/highcharts.js"></script>
 </head>
-<body class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-gray-900 text-gray-800 dark:text-gray-100 font-sans">
-    <div class="max-w-4xl mx-auto p-6 bg-white/80 dark:bg-gray-800/80 backdrop-blur rounded-xl shadow-lg">
-        <a href="index.php" class="mb-4 inline-block text-indigo-600 dark:text-indigo-400 hover:underline">&larr; Back to Home</a>
-        <div class="flex justify-between items-center mb-6 bg-white/70 dark:bg-gray-800/70 backdrop-blur p-4 rounded-lg shadow">
+<body class="min-h-screen bg-base-200 text-base-content font-sans">
+    <div class="max-w-4xl mx-auto p-6 bg-base-100/80 backdrop-blur rounded-xl shadow-lg">
+        <a href="index.php" class="mb-4 inline-block text-primary hover:underline">&larr; Back to Home</a>
+        <div class="flex justify-between items-center mb-6 bg-base-100/70 backdrop-blur p-4 rounded-lg shadow">
             <h1 class="text-2xl font-bold">History: <?php echo htmlspecialchars($key); ?></h1>
-            <button id="modeToggle" class="px-3 py-1 rounded bg-indigo-500 text-white hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700">Switch to Dark Mode</button>
+            <button id="themeToggle" class="px-3 py-1 rounded bg-indigo-500 text-white hover:bg-indigo-600">Switch to Dracula Theme</button>
         </div>
         <form method="get" class="mb-6 flex flex-wrap items-end gap-4">
             <input type="hidden" name="topic" value="<?php echo htmlspecialchars($key); ?>">
             <label class="flex flex-col">
                 <span>Start</span>
-                <input type="date" name="start" value="<?php echo htmlspecialchars($start); ?>" class="border rounded px-2 py-1 bg-white dark:bg-gray-700">
+                <input type="date" name="start" value="<?php echo htmlspecialchars($start); ?>" class="border rounded px-2 py-1 bg-base-100">
             </label>
             <label class="flex flex-col">
                 <span>End</span>
-                <input type="date" name="end" value="<?php echo htmlspecialchars($end); ?>" class="border rounded px-2 py-1 bg-white dark:bg-gray-700">
+                <input type="date" name="end" value="<?php echo htmlspecialchars($end); ?>" class="border rounded px-2 py-1 bg-base-100">
             </label>
-            <button type="submit" class="px-3 py-1 rounded bg-indigo-500 text-white hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700">Apply</button>
+            <button type="submit" class="px-3 py-1 rounded bg-indigo-500 text-white hover:bg-indigo-600">Apply</button>
         </form>
-        <div id="histChart" class="mb-6 bg-white/70 dark:bg-gray-800/70 p-4 rounded-xl shadow"></div>
-        <button id="downloadCsv" class="px-3 py-1 rounded bg-indigo-500 text-white hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700">Download CSV</button>
+        <div id="histChart" class="mb-6 bg-base-100/70 p-4 rounded-xl shadow"></div>
+        <button id="downloadCsv" class="px-3 py-1 rounded bg-indigo-500 text-white hover:bg-indigo-600">Download CSV</button>
     </div>
 
     <script>
-    const modeToggle = document.getElementById('modeToggle');
+    const themeToggle = document.getElementById('themeToggle');
     const data = <?php echo json_encode($rows); ?>;
     const chartData = data.map(r => [Date.parse(r.timestamp), parseFloat(r.value)]);
     const histChart = Highcharts.chart('histChart', {
@@ -103,30 +113,48 @@ try {
         series: [{ name: <?php echo json_encode($key); ?>, data: chartData }]
     });
 
+    const themeColors = {
+        light: { text: '#1F2937', bg: '#FFFFFF', grid: '#e5e7eb', series: ['#2563EB'] },
+        dark: { text: '#F9FAFB', bg: '#1f2937', grid: '#374151', series: ['#3b82f6'] },
+        dracula: { text: '#F8F8F2', bg: '#282A36', grid: '#44475a', series: ['#BD93F9'] }
+    };
+
     function updateChartTheme() {
-        const isDark = document.documentElement.classList.contains('dark');
-        const textColor = isDark ? '#F9FAFB' : '#1F2937';
-        const bgColor = isDark ? '#1f2937' : '#FFFFFF';
-        const gridColor = isDark ? '#374151' : '#e5e7eb';
+        const theme = document.documentElement.getAttribute('data-theme') || 'dark';
+        const colors = themeColors[theme] || themeColors.dark;
         histChart.update({
-            chart: { backgroundColor: bgColor },
-            title: { style: { color: textColor } },
-            xAxis: { labels: { style: { color: textColor } }, gridLineColor: gridColor, lineColor: textColor },
-            yAxis: { labels: { style: { color: textColor } }, title: { style: { color: textColor } }, gridLineColor: gridColor, lineColor: textColor }
-        });
+            chart: { backgroundColor: colors.bg },
+            title: { style: { color: colors.text } },
+            xAxis: { labels: { style: { color: colors.text } }, gridLineColor: colors.grid, lineColor: colors.text },
+            yAxis: { labels: { style: { color: colors.text } }, title: { style: { color: colors.text } }, gridLineColor: colors.grid, lineColor: colors.text }
+        }, false);
+        histChart.series[0].update({ color: colors.series[0] }, false);
+        histChart.redraw();
     }
 
-    function updateModeText() {
-        modeToggle.textContent = document.documentElement.classList.contains('dark') ? 'Switch to Light Mode' : 'Switch to Dark Mode';
-    }
-
-    modeToggle.addEventListener('click', () => {
-        document.documentElement.classList.toggle('dark');
-        updateModeText();
+    function setTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        updateToggleText();
         updateChartTheme();
+    }
+
+    function updateToggleText() {
+        const current = document.documentElement.getAttribute('data-theme');
+        themeToggle.textContent = current === 'dracula' ? 'Switch to Dark Theme' : 'Switch to Dracula Theme';
+    }
+
+    themeToggle.addEventListener('click', () => {
+        const current = document.documentElement.getAttribute('data-theme');
+        if (current === 'light') {
+            setTheme('dark');
+        } else if (current === 'dark') {
+            setTheme('dracula');
+        } else {
+            setTheme('dark');
+        }
     });
 
-    updateModeText();
+    updateToggleText();
     updateChartTheme();
 
     document.getElementById('downloadCsv').addEventListener('click', () => {
