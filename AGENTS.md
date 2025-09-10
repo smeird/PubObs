@@ -31,3 +31,5 @@ Design decisions added after this file should be appended here for future refere
 21. The index page shows a bar chart of nightly observable hours for the last 30 days using safe data from `obs_weather`.
 22. If the Paho MQTT library fails to load, the index page should display an MQTT unavailable status and avoid runtime errors.
 
+22. Beneath the observable hours bar chart, the index page displays a live chart of clouds, light, and SQM values sourced from MQTT.
+
