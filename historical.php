@@ -74,7 +74,7 @@ try {
         <a href="index.php" class="mb-4 inline-block text-indigo-600 dark:text-indigo-400 hover:underline">&larr; Back to Home</a>
         <div class="flex justify-between items-center mb-6 bg-white/70 dark:bg-gray-800/70 backdrop-blur p-4 rounded-lg shadow">
             <h1 class="text-2xl font-bold">History: <?php echo htmlspecialchars($key); ?></h1>
-            <button id="modeToggle" class="px-3 py-1 rounded bg-indigo-500 text-white hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700">Switch to Dark Mode</button>
+            <button id="modeToggle" class="p-2 rounded bg-indigo-500 text-white hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700" aria-label="Switch to Dark Mode">🌙</button>
         </div>
         <form method="get" class="mb-6 flex flex-wrap items-end gap-4">
             <input type="hidden" name="topic" value="<?php echo htmlspecialchars($key); ?>">
@@ -116,17 +116,19 @@ try {
         });
     }
 
-    function updateModeText() {
-        modeToggle.textContent = document.documentElement.classList.contains('dark') ? 'Switch to Light Mode' : 'Switch to Dark Mode';
+    function updateModeIcon() {
+        const isDark = document.documentElement.classList.contains('dark');
+        modeToggle.textContent = isDark ? '🌞' : '🌙';
+        modeToggle.setAttribute('aria-label', isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode');
     }
 
     modeToggle.addEventListener('click', () => {
         document.documentElement.classList.toggle('dark');
-        updateModeText();
+        updateModeIcon();
         updateChartTheme();
     });
 
-    updateModeText();
+    updateModeIcon();
     updateChartTheme();
 
     document.getElementById('downloadCsv').addEventListener('click', () => {

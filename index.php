@@ -77,11 +77,12 @@ try {
         <div class="flex justify-between items-center mb-8 bg-white/70 dark:bg-gray-800/70 backdrop-blur p-4 rounded-lg shadow">
             <h1 class="flex items-center text-2xl font-bold">
                 <img src="favicon.svg" alt="" class="w-8 h-8 mr-2">
-                Wheathampstead AstroPhotography Conditions
+                <span class="hidden sm:inline">Wheathampstead AstroPhotography Conditions</span>
+                <span class="sm:hidden">WAPC</span>
             </h1>
             <div class="flex items-center space-x-2">
                 <span id="mqttStatus" class="text-sm text-yellow-600">Connecting...</span>
-                <button id="modeToggle" class="px-3 py-1 rounded bg-indigo-500 text-white hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700">Switch to Dark Mode</button>
+                <button id="modeToggle" class="p-2 rounded bg-indigo-500 text-white hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700" aria-label="Switch to Dark Mode">🌙</button>
             </div>
         </div>
         <div id="cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
@@ -325,16 +326,19 @@ envTopicNames.forEach((name, idx) => {
         [chart, safeChart, envChart].forEach(c => c.redraw());
     }
 
-    function updateModeText() {
-        modeToggle.textContent = document.documentElement.classList.contains('dark') ? 'Switch to Light Mode' : 'Switch to Dark Mode';
+    function updateModeIcon() {
+        const isDark = document.documentElement.classList.contains('dark');
+        modeToggle.textContent = isDark ? '🌞' : '🌙';
+        modeToggle.setAttribute('aria-label', isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode');
     }
+
     modeToggle.addEventListener('click', () => {
         document.documentElement.classList.toggle('dark');
-        updateModeText();
+        updateModeIcon();
         updateChartsTheme();
     });
 
-    updateModeText();
+    updateModeIcon();
     updateChartsTheme();
     </script>
 </body>
