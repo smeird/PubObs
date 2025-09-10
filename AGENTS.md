@@ -24,3 +24,4 @@ Design decisions added after this file should be appended here for future refere
 17. Historical data resides in a MySQL table named `sensor_data` with columns `topic`, `timestamp`, and `value`.
 18. Database credentials are read from the environment variables `DB_HOST`, `DB_NAME`, `DB_USER`, and `DB_PASS`.
 19. Historical weather data is now stored in a MySQL table named `obs_weather` with columns `dateTime`, `clouds`, `temp`, `wind`, `gust`, `rain`, `light`, `switch`, `safe`, `hum`, and `dewp`.
+20. The index page displays current MQTT values in a responsive grid of Tailwind CSS cards.
