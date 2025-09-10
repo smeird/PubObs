@@ -63,8 +63,6 @@ try {
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://code.highcharts.com/highcharts.js"></script>
-    <link href="https://unpkg.com/tabulator-tables@5.4.4/dist/css/tabulator.min.css" rel="stylesheet">
-    <script src="https://unpkg.com/tabulator-tables@5.4.4/dist/js/tabulator.min.js"></script>
 </head>
 <body class="h-full bg-white text-gray-800 dark:bg-gray-900 dark:text-gray-100">
     <div class="container mx-auto p-4">
@@ -86,7 +84,7 @@ try {
             <button type="submit" class="px-2 py-1 border rounded">Apply</button>
         </form>
         <div id="histChart" class="mb-6"></div>
-        <div id="histTable"></div>
+        <button id="downloadCsv" class="px-2 py-1 border rounded">Download CSV</button>
     </div>
 
     <script>
@@ -125,13 +123,21 @@ try {
 
     updateModeText();
     updateChartTheme();
-    new Tabulator('#histTable', {
-        data: data,
-        layout: 'fitColumns',
-        columns: [
-            { title: 'Timestamp', field: 'timestamp' },
-            { title: 'Value', field: 'value' }
-        ]
+
+    document.getElementById('downloadCsv').addEventListener('click', () => {
+        const csvRows = ['timestamp,value'];
+        data.forEach(r => {
+            csvRows.push(`${r.timestamp},${r.value}`);
+        });
+        const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = <?php echo json_encode($key . '_history.csv'); ?>;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
     });
     </script>
 </body>

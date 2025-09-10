@@ -33,4 +33,5 @@ Design decisions added after this file should be appended here for future refere
 24. The site uses `favicon.svg` as its favicon, linked from all pages.
 25. The index page loads the MQTT.js library with multiple fallbacks and automatically reconnects with exponential backoff if the MQTT connection is lost.
 26. Historical page queries are capped at a maximum span of seven days to prevent excessive data loads.
+27. Historical pages provide a button to download data as CSV instead of displaying a table.
 
