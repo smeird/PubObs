@@ -11,7 +11,9 @@ $dbPass = getenv('DB_PASS');
 $safeData = [];
 try {
     $pdo = new PDO("mysql:host=$dbHost;dbname=$dbName;charset=utf8", $dbUser, $dbPass, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
-    $stmt = $pdo->prepare("SELECT DATE(FROM_UNIXTIME(dateTime)) AS day, SUM(safe)/60 AS hours FROM obs_weather WHERE dateTime >= UNIX_TIMESTAMP(DATE_SUB(CURDATE(), INTERVAL 30 DAY)) GROUP BY day ORDER BY day");
+    // `safe` stores seconds of safe observing time per record.
+    // Convert the summed seconds to hours for the chart.
+    $stmt = $pdo->prepare("SELECT DATE(FROM_UNIXTIME(dateTime)) AS day, SUM(safe)/3600 AS hours FROM obs_weather WHERE dateTime >= UNIX_TIMESTAMP(DATE_SUB(CURDATE(), INTERVAL 30 DAY)) GROUP BY day ORDER BY day");
     $stmt->execute();
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
     $start = new DateTime('-29 days');
