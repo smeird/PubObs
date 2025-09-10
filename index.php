@@ -54,7 +54,7 @@ try {
             <h1 class="text-2xl font-bold">PubObs Live Data</h1>
             <div class="flex items-center space-x-2">
                 <span id="mqttStatus" class="text-sm text-yellow-600">Connecting...</span>
-                <button id="modeToggle" class="px-2 py-1 border rounded">Toggle Mode</button>
+                <button id="modeToggle" class="px-2 py-1 border rounded">Switch to Dark Mode</button>
             </div>
         </div>
         <div id="cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
@@ -209,7 +209,7 @@ const icons = {
 
     const safeCategories = safeData.map(r => r.day);
     const safeHours = safeData.map(r => parseFloat(r.hours));
-    Highcharts.chart('safeChart', {
+    const safeChart = Highcharts.chart('safeChart', {
         chart: { type: 'column' },
         title: { text: 'Observable Hours (Last 30 Days)' },
         xAxis: { categories: safeCategories },
@@ -229,9 +229,33 @@ const icons = {
     });
 
     const modeToggle = document.getElementById('modeToggle');
+
+    function updateChartsTheme() {
+        const isDark = document.documentElement.classList.contains('dark');
+        const textColor = isDark ? '#F9FAFB' : '#1F2937';
+        const bgColor = isDark ? '#1f2937' : '#FFFFFF';
+        const gridColor = isDark ? '#374151' : '#e5e7eb';
+        [chart, safeChart, envChart].forEach(c => c.update({
+            chart: { backgroundColor: bgColor },
+            title: { style: { color: textColor } },
+            xAxis: { labels: { style: { color: textColor } }, gridLineColor: gridColor, lineColor: textColor },
+            yAxis: { labels: { style: { color: textColor } }, title: { style: { color: textColor } }, gridLineColor: gridColor, lineColor: textColor },
+            legend: { itemStyle: { color: textColor } }
+        }, false));
+        [chart, safeChart, envChart].forEach(c => c.redraw());
+    }
+
+    function updateModeText() {
+        modeToggle.textContent = document.documentElement.classList.contains('dark') ? 'Switch to Light Mode' : 'Switch to Dark Mode';
+    }
     modeToggle.addEventListener('click', () => {
         document.documentElement.classList.toggle('dark');
+        updateModeText();
+        updateChartsTheme();
     });
+
+    updateModeText();
+    updateChartsTheme();
     </script>
 </body>
 </html>
