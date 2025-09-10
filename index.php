@@ -116,7 +116,7 @@ const icons = {
     });
 
     const statusEl = document.getElementById('mqttStatus');
-    const client = new Paho.MQTT.Client(brokerHost, port, "webclient-" + Math.random());
+    let client;
 
     function onConnectionLost() {
         console.log('Connection lost');
@@ -148,10 +148,16 @@ const icons = {
         statusEl.className = 'text-sm text-red-600';
     }
 
-    client.onConnectionLost = onConnectionLost;
-    client.onMessageArrived = onMessageArrived;
-
-    client.connect({ onSuccess: onConnect, onFailure: onFail, useSSL: location.protocol === 'https:' });
+    if (typeof Paho !== 'undefined' && Paho.MQTT && Paho.MQTT.Client) {
+        client = new Paho.MQTT.Client(brokerHost, port, "webclient-" + Math.random());
+        client.onConnectionLost = onConnectionLost;
+        client.onMessageArrived = onMessageArrived;
+        client.connect({ onSuccess: onConnect, onFailure: onFail, useSSL: location.protocol === 'https:' });
+    } else {
+        console.error('Paho MQTT library is not loaded');
+        statusEl.textContent = 'MQTT unavailable';
+        statusEl.className = 'text-sm text-red-600';
+    }
 
     const chart = Highcharts.chart('liveChart', {
         chart: { type: 'spline' },
