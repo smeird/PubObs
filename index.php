@@ -142,7 +142,7 @@ const icons = {
 
     function connectClient() {
         if (!window.Paho?.MQTT?.Client) {
-            console.error('Paho MQTT library is not loaded');
+            console.warn('Paho MQTT library is not loaded');
             updateStatus('MQTT unavailable', 'text-red-600');
             return;
         }
@@ -184,7 +184,7 @@ const icons = {
 
     function loadPaho(urls, idx = 0) {
         if (idx >= urls.length) {
-            console.error('Paho MQTT library failed to load');
+            console.warn('Paho MQTT library failed to load');
             updateStatus('MQTT unavailable', 'text-red-600');
             return;
         }
