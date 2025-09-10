@@ -48,8 +48,6 @@ try {
     </script>
     <!-- Highcharts -->
     <script src="https://code.highcharts.com/highcharts.js"></script>
-    <!-- MQTT over WebSocket -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.1.0/mqttws31.min.js"></script>
 </head>
 <body class="h-full bg-white text-gray-800 dark:bg-gray-900 dark:text-gray-100">
     <div class="container mx-auto p-4">
@@ -57,7 +55,7 @@ try {
             <h1 class="text-2xl font-bold">PubObs Live Data</h1>
             <div class="flex items-center space-x-2">
                 <span id="mqttStatus" class="text-sm text-yellow-600">Connecting...</span>
-                <button id="modeToggle" class="px-2 py-1 border rounded">Toggle Mode</button>
+                <button id="modeToggle" class="px-2 py-1 border rounded">Switch to Dark Mode</button>
             </div>
         </div>
         <div id="cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
@@ -127,11 +125,38 @@ const icons = {
 
     const statusEl = document.getElementById('mqttStatus');
     let client;
+    let connectAttempts = 0;
+
+    function updateStatus(text, cls) {
+        statusEl.textContent = text;
+        statusEl.className = 'text-sm ' + cls;
+    }
+
+    function scheduleReconnect() {
+        const delay = Math.min(1000 * Math.pow(2, connectAttempts), 30000);
+        updateStatus('Reconnecting...', 'text-yellow-600');
+        setTimeout(() => {
+            connectAttempts++;
+            connectClient();
+        }, delay);
+    }
+
+    function connectClient() {
+        if (!window.Paho?.MQTT?.Client) {
+            console.error('Paho MQTT library is not loaded');
+            updateStatus('MQTT unavailable', 'text-red-600');
+            return;
+        }
+        client = new Paho.MQTT.Client(brokerHost, port, "webclient-" + Math.random());
+        client.onConnectionLost = onConnectionLost;
+        client.onMessageArrived = onMessageArrived;
+        client.connect({ onSuccess: onConnect, onFailure: scheduleReconnect, useSSL: location.protocol === 'https:' });
+    }
 
     function onConnectionLost() {
         console.log('Connection lost');
-        statusEl.textContent = 'Disconnected';
-        statusEl.className = 'text-sm text-red-600';
+        updateStatus('Disconnected', 'text-red-600');
+        scheduleReconnect();
     }
     function onMessageArrived(message) {
         const topic = message.destinationName;
@@ -152,27 +177,29 @@ const icons = {
             envChart.series[envIndex].addPoint([x, value], true, envChart.series[envIndex].data.length > 40);
         }
     }
-
     function onConnect() {
-        statusEl.textContent = 'Connected';
-        statusEl.className = 'text-sm text-green-600';
+        updateStatus('Connected', 'text-green-600');
+        connectAttempts = 0;
         Object.values(topics).forEach(t => client.subscribe(t));
     }
-    function onFail() {
-        statusEl.textContent = 'Disconnected';
-        statusEl.className = 'text-sm text-red-600';
+
+    function loadPaho(urls, idx = 0) {
+        if (idx >= urls.length) {
+            console.error('Paho MQTT library failed to load');
+            updateStatus('MQTT unavailable', 'text-red-600');
+            return;
+        }
+        const script = document.createElement('script');
+        script.src = urls[idx];
+        script.onload = connectClient;
+        script.onerror = () => loadPaho(urls, idx + 1);
+        document.head.appendChild(script);
     }
 
-    if (window.Paho?.MQTT?.Client) {
-        client = new Paho.MQTT.Client(brokerHost, port, "webclient-" + Math.random());
-        client.onConnectionLost = onConnectionLost;
-        client.onMessageArrived = onMessageArrived;
-        client.connect({ onSuccess: onConnect, onFailure: onFail, useSSL: location.protocol === 'https:' });
-    } else {
-        console.error('Paho MQTT library is not loaded');
-        statusEl.textContent = 'MQTT unavailable';
-        statusEl.className = 'text-sm text-red-600';
-    }
+    loadPaho([
+        'https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.1.0/mqttws31.min.js',
+        'https://unpkg.com/paho-mqtt@1.1.0/paho-mqtt-min.js'
+    ]);
 
     const chart = Highcharts.chart('liveChart', {
         chart: { type: 'spline' },
@@ -183,7 +210,7 @@ const icons = {
 
     const safeCategories = safeData.map(r => r.day);
     const safeHours = safeData.map(r => parseFloat(r.hours));
-    Highcharts.chart('safeChart', {
+    const safeChart = Highcharts.chart('safeChart', {
         chart: { type: 'column' },
         title: { text: 'Observable Hours (Last 30 Days)' },
         xAxis: { categories: safeCategories },
@@ -203,9 +230,33 @@ const icons = {
     });
 
     const modeToggle = document.getElementById('modeToggle');
+
+    function updateChartsTheme() {
+        const isDark = document.documentElement.classList.contains('dark');
+        const textColor = isDark ? '#F9FAFB' : '#1F2937';
+        const bgColor = isDark ? '#1f2937' : '#FFFFFF';
+        const gridColor = isDark ? '#374151' : '#e5e7eb';
+        [chart, safeChart, envChart].forEach(c => c.update({
+            chart: { backgroundColor: bgColor },
+            title: { style: { color: textColor } },
+            xAxis: { labels: { style: { color: textColor } }, gridLineColor: gridColor, lineColor: textColor },
+            yAxis: { labels: { style: { color: textColor } }, title: { style: { color: textColor } }, gridLineColor: gridColor, lineColor: textColor },
+            legend: { itemStyle: { color: textColor } }
+        }, false));
+        [chart, safeChart, envChart].forEach(c => c.redraw());
+    }
+
+    function updateModeText() {
+        modeToggle.textContent = document.documentElement.classList.contains('dark') ? 'Switch to Light Mode' : 'Switch to Dark Mode';
+    }
     modeToggle.addEventListener('click', () => {
         document.documentElement.classList.toggle('dark');
+        updateModeText();
+        updateChartsTheme();
     });
+
+    updateModeText();
+    updateChartsTheme();
     </script>
 </body>
 </html>

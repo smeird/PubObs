@@ -60,7 +60,7 @@ try {
     <div class="container mx-auto p-4">
         <div class="flex justify-between items-center mb-4">
             <h1 class="text-2xl font-bold">History: <?php echo htmlspecialchars($key); ?></h1>
-            <button id="modeToggle" class="px-2 py-1 border rounded">Toggle Mode</button>
+            <button id="modeToggle" class="px-2 py-1 border rounded">Switch to Dark Mode</button>
         </div>
         <form method="get" class="mb-4 flex flex-wrap items-end gap-2">
             <input type="hidden" name="topic" value="<?php echo htmlspecialchars($key); ?>">
@@ -80,17 +80,40 @@ try {
 
     <script>
     const modeToggle = document.getElementById('modeToggle');
-    modeToggle.addEventListener('click', () => {
-        document.documentElement.classList.toggle('dark');
-    });
     const data = <?php echo json_encode($rows); ?>;
     const chartData = data.map(r => [Date.parse(r.timestamp), parseFloat(r.value)]);
-    Highcharts.chart('histChart', {
+    const histChart = Highcharts.chart('histChart', {
         chart: { type: 'line' },
         title: { text: 'Historical Data' },
         xAxis: { type: 'datetime' },
         series: [{ name: <?php echo json_encode($key); ?>, data: chartData }]
     });
+
+    function updateChartTheme() {
+        const isDark = document.documentElement.classList.contains('dark');
+        const textColor = isDark ? '#F9FAFB' : '#1F2937';
+        const bgColor = isDark ? '#1f2937' : '#FFFFFF';
+        const gridColor = isDark ? '#374151' : '#e5e7eb';
+        histChart.update({
+            chart: { backgroundColor: bgColor },
+            title: { style: { color: textColor } },
+            xAxis: { labels: { style: { color: textColor } }, gridLineColor: gridColor, lineColor: textColor },
+            yAxis: { labels: { style: { color: textColor } }, title: { style: { color: textColor } }, gridLineColor: gridColor, lineColor: textColor }
+        });
+    }
+
+    function updateModeText() {
+        modeToggle.textContent = document.documentElement.classList.contains('dark') ? 'Switch to Light Mode' : 'Switch to Dark Mode';
+    }
+
+    modeToggle.addEventListener('click', () => {
+        document.documentElement.classList.toggle('dark');
+        updateModeText();
+        updateChartTheme();
+    });
+
+    updateModeText();
+    updateChartTheme();
     new Tabulator('#histTable', {
         data: data,
         layout: 'fitColumns',
