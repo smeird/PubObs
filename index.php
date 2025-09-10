@@ -83,34 +83,23 @@ envTopicNames.forEach((name, idx) => {
 });
 
     const cardsContainer = document.getElementById('cards');
+    cardsContainer.innerHTML = '';
     const sanitize = name => name.replace(/[^a-zA-Z0-9_-]/g, '_');
-const icons = {
-        temperature: "🌡️",
-        rain: "🌧️",
-        light: "💡",
-        clouds: "☁️",
-        safe: "✅",
-        sqm: "🌌",
-        humidity: "💧",
-        dewpoint: "🧊"
-    };
-
 
     topicEntries.forEach(([name, topic]) => {
         const id = 'value-' + sanitize(name);
         const card = document.createElement('div');
-        card.className = 'bg-gray-100 dark:bg-gray-800 p-4 rounded shadow h-48 flex flex-col';
+        card.className = 'bg-gray-100 dark:bg-gray-800 p-4 rounded shadow h-32 flex';
         card.innerHTML = `
-            <div class="flex items-center space-x-2">
-                <span class="text-2xl">${icons[name] || '📈'}</span>
+            <div class="flex flex-col justify-between w-1/2">
                 <h2 class="text-xl font-semibold">${name}</h2>
+                <div class="mt-2 flex space-x-2">
+                    <a href="historical.php?topic=${encodeURIComponent(name)}" class="text-blue-500">History</a>
+                    <button class="px-2 py-1 bg-blue-500 text-white rounded show-chart" data-topic="${topic}" data-name="${name}">Show</button>
+                </div>
             </div>
-            <div class="flex-grow flex items-end justify-end" style="flex-basis:75%;">
+            <div class="w-1/2 flex items-center justify-center">
                 <p id="${id}" class="text-right text-6xl leading-none">--</p>
-            </div>
-            <div class="mt-2 flex space-x-2">
-                <a href="historical.php?topic=${encodeURIComponent(name)}" class="text-blue-500">History</a>
-                <button class="px-2 py-1 bg-blue-500 text-white rounded show-chart" data-topic="${topic}" data-name="${name}">Show</button>
             </div>
         `;
         cardsContainer.appendChild(card);
