@@ -14,7 +14,6 @@ try {
     // Fetch safe records for the last 30 days and compute hours where safe=1.
     $stmt = $pdo->prepare("SELECT dateTime, safe FROM obs_weather WHERE dateTime >= UNIX_TIMESTAMP(DATE_SUB(CURDATE(), INTERVAL 30 DAY)) ORDER BY dateTime");
     $stmt->execute();
-    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     // Initialize array covering last 30 days with zero seconds.
     $start = new DateTime('-29 days');
@@ -24,23 +23,26 @@ try {
         $safeData[$d->format('Y-m-d')] = 0;
     }
 
-    $count = count($rows);
-    for ($i = 0; $i < $count - 1; $i++) {
-        $currTime = (int)$rows[$i]['dateTime'];
-        $nextTime = (int)$rows[$i + 1]['dateTime'];
-        if ((int)$rows[$i]['safe'] === 1) {
-            $segmentStart = $currTime;
-            $segmentEnd = $nextTime;
-            while ($segmentStart < $segmentEnd) {
-                $day = date('Y-m-d', $segmentStart);
-                $dayStart = strtotime($day, $segmentStart);
-                $dayEnd = $dayStart + 86400;
-                $boundary = min($segmentEnd, $dayEnd);
-                if (isset($safeData[$day])) {
-                    $safeData[$day] += $boundary - $segmentStart;
+    $prev = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ($prev) {
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $currTime = (int)$prev['dateTime'];
+            $nextTime = (int)$row['dateTime'];
+            if ((int)$prev['safe'] === 1) {
+                $segmentStart = $currTime;
+                $segmentEnd = $nextTime;
+                while ($segmentStart < $segmentEnd) {
+                    $day = date('Y-m-d', $segmentStart);
+                    $dayStart = strtotime($day, $segmentStart);
+                    $dayEnd = $dayStart + 86400;
+                    $boundary = min($segmentEnd, $dayEnd);
+                    if (isset($safeData[$day])) {
+                        $safeData[$day] += $boundary - $segmentStart;
+                    }
+                    $segmentStart = $boundary;
                 }
-                $segmentStart = $boundary;
             }
+            $prev = $row;
         }
     }
 
