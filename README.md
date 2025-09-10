@@ -11,6 +11,10 @@ Website that publicly shows observatory sensor data. The site displays live and 
 - Tailwind CSS default styling with light and dark modes
 - Index page lists all live data sources with links to historical views and shows a live updating graph
 
+## Configuration
+
+MQTT host and topic names are defined in `mqtt_config.json`. Update this file to match your local MQTT broker settings.
+
 ## Architecture
 
 ```mermaid
