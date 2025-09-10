@@ -41,3 +41,4 @@ Design decisions added after this file should be appended here for future refere
 32. Observable hours are calculated by summing time intervals where the `safe` field equals 1.
 33. Safe data aggregation processes database rows sequentially to limit memory usage.
 
+34. The site includes a `clear.php` page that charts monthly safe observing hours for a selected year and is linked from the index page.
