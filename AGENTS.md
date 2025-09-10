@@ -33,3 +33,5 @@ Design decisions added after this file should be appended here for future refere
 
 22. Beneath the observable hours bar chart, the index page displays a live chart of clouds, light, and SQM values sourced from MQTT.
 
+23. Historical pages default to the last week of data and provide controls to view any date range in the database.
+
