@@ -1,4 +1,4 @@
-# PubObs
+# Wheathampstead AstroPhotography Conditions
 
 Website that publicly shows observatory sensor data. The site displays live and historical sensor readings with a modern interface.
 
