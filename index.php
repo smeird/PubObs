@@ -45,13 +45,27 @@ $topics = $config['topics'] ?? [];
 
     const cardsContainer = document.getElementById('cards');
     const sanitize = name => name.replace(/[^a-zA-Z0-9_-]/g, '_');
+const icons = {
+        temperature: "🌡️",
+        rain: "🌧️",
+        light: "💡",
+        clouds: "☁️",
+        safe: "✅",
+        sqm: "🌌",
+        humidity: "💧",
+        dewpoint: "🧊"
+    };
+
 
     topicEntries.forEach(([name, topic]) => {
         const id = 'value-' + sanitize(name);
         const card = document.createElement('div');
         card.className = 'bg-gray-100 dark:bg-gray-800 p-4 rounded shadow';
         card.innerHTML = `
-            <h2 class="text-xl font-semibold">${name}</h2>
+            <div class="flex items-center space-x-2">
+                <span class="text-2xl">${icons[name] || '📈'}</span>
+                <h2 class="text-xl font-semibold">${name}</h2>
+            </div>
             <p id="${id}" class="text-2xl mt-2">--</p>
             <div class="mt-2 flex space-x-2">
                 <a href="historical.php?topic=${encodeURIComponent(name)}" class="text-blue-500">History</a>

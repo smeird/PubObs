@@ -27,3 +27,4 @@ Design decisions added after this file should be appended here for future refere
 20. The index page displays current MQTT values in a responsive grid of Tailwind CSS cards.
 21. The index page shows an indicator reflecting the MQTT connection status.
 
+
