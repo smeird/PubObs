@@ -144,15 +144,19 @@ const icons = {
     }
 
     function connectClient() {
-        if (!window.Paho?.MQTT?.Client) {
-            console.warn('Paho MQTT library is not loaded');
+        if (!window.mqtt) {
+            console.warn('MQTT.js library is not loaded');
             updateStatus('MQTT unavailable', 'text-red-600');
             return;
         }
-        client = new Paho.MQTT.Client(brokerHost, port, "webclient-" + Math.random());
-        client.onConnectionLost = onConnectionLost;
-        client.onMessageArrived = onMessageArrived;
-        client.connect({ onSuccess: onConnect, onFailure: scheduleReconnect, useSSL: location.protocol === 'https:' });
+        const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
+        client = mqtt.connect(`${protocol}://${brokerHost}:${port}`, {
+            reconnectPeriod: 0,
+            clientId: 'webclient-' + Math.random()
+        });
+        client.on('connect', onConnect);
+        client.on('message', onMessageArrived);
+        client.on('close', onConnectionLost);
     }
 
     function onConnectionLost() {
@@ -160,9 +164,8 @@ const icons = {
         updateStatus('Disconnected', 'text-red-600');
         scheduleReconnect();
     }
-    function onMessageArrived(message) {
-        const topic = message.destinationName;
-        const value = parseFloat(message.payloadString);
+    function onMessageArrived(topic, message) {
+        const value = parseFloat(message.toString());
         const entry = topicEntries.find(([, t]) => t === topic);
         if (entry) {
             const id = 'value-' + sanitize(entry[0]);
@@ -185,22 +188,22 @@ const icons = {
         Object.values(topics).forEach(t => client.subscribe(t));
     }
 
-    function loadPaho(urls, idx = 0) {
+    function loadMQTT(urls, idx = 0) {
         if (idx >= urls.length) {
-            console.warn('Paho MQTT library failed to load');
+            console.warn('MQTT.js library failed to load');
             updateStatus('MQTT unavailable', 'text-red-600');
             return;
         }
         const script = document.createElement('script');
         script.src = urls[idx];
         script.onload = connectClient;
-        script.onerror = () => loadPaho(urls, idx + 1);
+        script.onerror = () => loadMQTT(urls, idx + 1);
         document.head.appendChild(script);
     }
 
-    loadPaho([
-        'https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.1.0/mqttws31.min.js',
-        'https://unpkg.com/paho-mqtt@1.1.0/paho-mqtt-min.js'
+    loadMQTT([
+        'https://unpkg.com/mqtt/dist/mqtt.min.js',
+        'https://cdn.jsdelivr.net/npm/mqtt/dist/mqtt.min.js'
     ]);
 
     const chart = Highcharts.chart('liveChart', {
