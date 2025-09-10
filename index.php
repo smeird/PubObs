@@ -13,9 +13,6 @@ $topics = $config['topics'] ?? [];
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Highcharts -->
     <script src="https://code.highcharts.com/highcharts.js"></script>
-    <!-- Tabulator -->
-    <link href="https://unpkg.com/tabulator-tables@5.4.4/dist/css/tabulator.min.css" rel="stylesheet">
-    <script src="https://unpkg.com/tabulator-tables@5.4.4/dist/js/tabulator.min.js"></script>
     <!-- MQTT over WebSocket -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.1.0/mqttws31.min.js"></script>
 </head>
@@ -25,72 +22,82 @@ $topics = $config['topics'] ?? [];
             <h1 class="text-2xl font-bold">PubObs Live Data</h1>
             <button id="modeToggle" class="px-2 py-1 border rounded">Toggle Mode</button>
         </div>
-        <div id="topic-table"></div>
-        <div class="mt-6">
-            <label for="topicSelect" class="block mb-2">Select Topic:</label>
-            <select id="topicSelect" class="text-black rounded p-2">
-            <?php foreach($topics as $key => $topic): ?>
-                <option value="<?php echo htmlspecialchars($topic); ?>"><?php echo htmlspecialchars($key); ?></option>
-            <?php endforeach; ?>
-            </select>
-        </div>
+        <div id="cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
         <div id="liveChart" class="mt-6"></div>
     </div>
 
     <script>
     const topics = <?php echo json_encode($topics); ?>;
-    const tableData = Object.keys(topics).map(key => ({topic: key, link: `<a class=\"text-blue-500\" href=\"historical.php?topic=${key}\">History</a>`}));
-    const table = new Tabulator("#topic-table", {
-        data: tableData,
-        layout: "fitColumns",
-        columns:[
-            {title:"Topic", field:"topic"},
-            {title:"Historical", field:"link", formatter:"html"}
-        ]
-    });
-
-    const modeToggle = document.getElementById('modeToggle');
-    modeToggle.addEventListener('click', () => {
-        document.documentElement.classList.toggle('dark');
-    });
-
     const host = <?php echo json_encode($host); ?>;
     const port = 8083; // default WebSocket port for MQTT
+    const topicEntries = Object.entries(topics);
+    let selectedName = topicEntries.length ? topicEntries[0][0] : '';
+    let selectedTopic = topicEntries.length ? topicEntries[0][1] : null;
+
+    const cardsContainer = document.getElementById('cards');
+    const sanitize = name => name.replace(/[^a-zA-Z0-9_-]/g, '_');
+
+    topicEntries.forEach(([name, topic]) => {
+        const id = 'value-' + sanitize(name);
+        const card = document.createElement('div');
+        card.className = 'bg-gray-100 dark:bg-gray-800 p-4 rounded shadow';
+        card.innerHTML = `
+            <h2 class="text-xl font-semibold">${name}</h2>
+            <p id="${id}" class="text-2xl mt-2">--</p>
+            <div class="mt-2 flex space-x-2">
+                <a href="historical.php?topic=${encodeURIComponent(name)}" class="text-blue-500">History</a>
+                <button class="px-2 py-1 bg-blue-500 text-white rounded show-chart" data-topic="${topic}" data-name="${name}">Show</button>
+            </div>
+        `;
+        cardsContainer.appendChild(card);
+    });
+
+    document.addEventListener('click', e => {
+        if (e.target.classList.contains('show-chart')) {
+            selectedTopic = e.target.dataset.topic;
+            selectedName = e.target.dataset.name;
+            chart.series[0].setData([]);
+            chart.setTitle({ text: 'Live Sensor Data: ' + selectedName });
+        }
+    });
+
     const client = new Paho.MQTT.Client(host, port, "webclient-" + Math.random());
 
     function onConnectionLost() {
         console.log('Connection lost');
     }
     function onMessageArrived(message) {
+        const topic = message.destinationName;
         const value = parseFloat(message.payloadString);
-        const x = (new Date()).getTime();
-        chart.series[0].addPoint([x, value], true, chart.series[0].data.length > 40);
+        const entry = topicEntries.find(([, t]) => t === topic);
+        if (entry) {
+            const id = 'value-' + sanitize(entry[0]);
+            const el = document.getElementById(id);
+            if (el) { el.textContent = value; }
+        }
+        if (topic === selectedTopic) {
+            const x = (new Date()).getTime();
+            chart.series[0].addPoint([x, value], true, chart.series[0].data.length > 40);
+        }
     }
 
     client.onConnectionLost = onConnectionLost;
     client.onMessageArrived = onMessageArrived;
 
-    client.connect({onSuccess: () => {
-        const selectedTopic = document.getElementById('topicSelect').value;
-        client.subscribe(selectedTopic);
+    client.connect({ onSuccess: () => {
+        Object.values(topics).forEach(t => client.subscribe(t));
     }});
 
     const chart = Highcharts.chart('liveChart', {
-        chart: {
-            type: 'spline'
-        },
-        title: { text: 'Live Sensor Data' },
+        chart: { type: 'spline' },
+        title: { text: selectedName ? 'Live Sensor Data: ' + selectedName : 'Live Sensor Data' },
         xAxis: { type: 'datetime' },
         series: [{ name: 'Value', data: [] }]
     });
 
-    document.getElementById('topicSelect').addEventListener('change', function(e){
-        const newTopic = e.target.value;
-        for (const t of Object.values(topics)) {
-            client.unsubscribe(t);
-        }
-        chart.series[0].setData([]);
-        client.subscribe(newTopic);
+    const modeToggle = document.getElementById('modeToggle');
+    modeToggle.addEventListener('click', () => {
+        document.documentElement.classList.toggle('dark');
     });
     </script>
 </body>
