@@ -35,7 +35,12 @@ Design decisions added after this file should be appended here for future refere
 26. Historical page queries are capped at a maximum span of seven days to prevent excessive data loads.
 27. Historical pages provide a button to download data as CSV instead of displaying a table.
 
+
 28. The site uses the daisyUI plugin for Tailwind CSS theming with "dark", "light", and "dracula" themes.
 29. The "dark" theme is the default and system preferences switch automatically between "dark" and "light".
 30. A theme toggle lets users switch between "dark" and "dracula" modes at runtime, updating charts to maintain high-contrast colours.
+
+
+28. The site title is "Wheathampstead AstroPhotography Conditions".
+29. `mqtt_config.json` topics can include a `green` threshold and `condition` (`above` or `below`) that turns the index page card border green when the incoming MQTT value meets the rule.
 
