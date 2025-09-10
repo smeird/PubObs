@@ -1,8 +1,23 @@
 <?php
-$config = json_decode(file_get_contents('mqtt_config.json'), true);
-$topics = $config['topics'] ?? [];
 $key = $_GET['topic'] ?? '';
-if (!array_key_exists($key, $topics)) {
+
+// Map friendly topic names to obs_weather columns
+$columnMap = [
+    'temperature' => 'temp',
+    'rain' => 'rain',
+    'light' => 'light',
+    'clouds' => 'clouds',
+    'safe' => 'safe',
+    'humidity' => 'hum',
+    'dewpoint' => 'dewp',
+    'wind' => 'wind',
+    'gust' => 'gust',
+    'switch' => 'switch',
+    'sqm' => 'light'
+];
+
+$column = $columnMap[$key] ?? null;
+if (!$column) {
     http_response_code(404);
     echo 'Unknown topic';
     exit;
@@ -13,8 +28,8 @@ $dbUser = getenv('DB_USER');
 $dbPass = getenv('DB_PASS');
 try {
     $pdo = new PDO("mysql:host=$dbHost;dbname=$dbName;charset=utf8", $dbUser, $dbPass, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
-    $stmt = $pdo->prepare('SELECT timestamp, value FROM sensor_data WHERE topic = ? ORDER BY timestamp DESC LIMIT 100');
-    $stmt->execute([$key]);
+    $stmt = $pdo->prepare("SELECT dateTime AS timestamp, `$column` AS value FROM obs_weather ORDER BY dateTime DESC LIMIT 100");
+    $stmt->execute();
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (Exception $e) {
     $rows = [];
