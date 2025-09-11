@@ -114,6 +114,7 @@ try {
     const port = 8083; // default WebSocket port for MQTT
 const brokerHost = (host === 'localhost' || host === '127.0.0.1') ? window.location.hostname : host;
 const topicEntries = Object.entries(topics);
+let skyImageUrl = null;
 
 const envTopicNames = ['clouds', 'light', 'sqm'];
 const envSeriesMap = {};
@@ -214,7 +215,10 @@ const envSeries = envTopicNames.map(name => {
     function onMessageArrived(topic, message) {
         if (topic === 'Observatory/skyimage') {
             const img = document.getElementById('skyImage');
-            img.src = 'data:image/jpeg;base64,' + message.toString();
+            if (skyImageUrl) URL.revokeObjectURL(skyImageUrl);
+            const blob = new Blob([message], { type: 'image/jpeg' });
+            skyImageUrl = URL.createObjectURL(blob);
+            img.src = skyImageUrl;
             return;
         }
         const value = parseFloat(message.toString());
