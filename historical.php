@@ -30,28 +30,21 @@ $dbUser = getenv('DB_USER');
 $dbPass = getenv('DB_PASS');
 $format = $_GET['format'] ?? '';
 
-// Determine requested date range; default to the last 7 days and cap span to one week
-$endParam = $_GET['end'] ?? null;
+// Determine requested date range; if none provided, return all data
+$endParam   = $_GET['end']   ?? null;
 $startParam = $_GET['start'] ?? null;
-$end   = $endParam ?: date('Y-m-d');
-$start = $startParam ?: date('Y-m-d', strtotime($end . ' -1 week'));
-
-$startTs = strtotime($start);
-$endTs   = strtotime($end);
-// If the requested range exceeds one week, limit to the most recent seven days
-if ($endTs - $startTs > 7 * 24 * 60 * 60) {
-    $startTs = $endTs - 7 * 24 * 60 * 60;
-    $start = date('Y-m-d', $startTs);
-}
-
-// Convert to timestamps compatible with the database
-$startDate = $start . ' 00:00:00';
-$endDate   = $end   . ' 23:59:59';
 
 try {
     $pdo = new PDO("mysql:host=$dbHost;dbname=$dbName;charset=utf8", $dbUser, $dbPass, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
-    $stmt = $pdo->prepare("SELECT dateTime AS timestamp, `$column` AS value FROM obs_weather WHERE dateTime BETWEEN :start AND :end ORDER BY dateTime ASC");
-    $stmt->execute(['start' => $startDate, 'end' => $endDate]);
+    if ($startParam && $endParam) {
+        $startDate = $startParam . ' 00:00:00';
+        $endDate   = $endParam   . ' 23:59:59';
+        $stmt = $pdo->prepare("SELECT dateTime AS timestamp, `$column` AS value FROM obs_weather WHERE dateTime BETWEEN :start AND :end ORDER BY dateTime ASC");
+        $stmt->execute(['start' => $startDate, 'end' => $endDate]);
+    } else {
+        $stmt = $pdo->prepare("SELECT dateTime AS timestamp, `$column` AS value FROM obs_weather ORDER BY dateTime ASC");
+        $stmt->execute();
+    }
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (Exception $e) {
     $rows = [];
@@ -96,16 +89,7 @@ if ($format === 'json') {
     const modeToggle = document.getElementById('modeToggle');
     let data = <?php echo json_encode($rows); ?>;
     const unit = <?php echo json_encode($unit); ?>;
-    const topic = <?php echo json_encode($key); ?>;
     const chartData = data.map(r => [Date.parse(r.timestamp), parseFloat(r.value)]);
-
-    async function fetchRange(start, end) {
-        const params = new URLSearchParams({ topic, start, end, format: 'json' });
-        const response = await fetch(`historical.php?${params.toString()}`);
-        const rows = await response.json();
-        data = rows;
-        return rows.map(r => [Date.parse(r.timestamp), parseFloat(r.value)]);
-    }
 
     const histChart = Highcharts.stockChart('histChart', {
         chart: { type: 'line' },
@@ -119,18 +103,7 @@ if ($format === 'json') {
                 { type: 'all', text: 'All' }
             ]
         },
-        xAxis: {
-            type: 'datetime',
-            events: {
-                afterSetExtremes: async function (e) {
-                    if (!e.trigger) return;
-                    const start = new Date(e.min).toISOString().slice(0, 10);
-                    const end = new Date(e.max).toISOString().slice(0, 10);
-                    const newData = await fetchRange(start, end);
-                    histChart.series[0].setData(newData);
-                }
-            }
-        },
+        xAxis: { type: 'datetime' },
         yAxis: { title: { text: unit } },
         series: [{ name: <?php echo json_encode($key . ($unit ? ' (' . $unit . ')' : '')); ?>, data: chartData }]
     });
