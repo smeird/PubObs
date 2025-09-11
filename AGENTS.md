@@ -32,7 +32,7 @@ Design decisions added after this file should be appended here for future refere
 23. Historical pages default to the last week of data and provide controls to view any date range in the database.
 24. The site uses `favicon.svg` as its favicon, linked from all pages.
 25. The index page loads the MQTT.js library with multiple fallbacks and automatically reconnects with exponential backoff if the MQTT connection is lost.
-26. Historical page queries are capped at a maximum span of seven days to prevent excessive data loads.
+26. Historical page queries were previously capped at a maximum span of seven days to prevent excessive data loads. (Superseded by item 38)
 27. Historical pages provide a button to download data as CSV instead of displaying a table.
 28. The site title is "Wheathampstead AstroPhotography Conditions".
 29. `mqtt_config.json` topics can include a `green` threshold and `condition` (`above` or `below`) that turns the index page card border green when the incoming MQTT value meets the rule.
@@ -48,3 +48,5 @@ Design decisions added after this file should be appended here for future refere
 36. The index page displays a sky image updated via the MQTT topic `Observatory/skyimage` instead of a live sensor graph.
 
 37. Historical charts use Highcharts' range selector to manage date ranges instead of manual date inputs.
+
+38. Historical pages load all available data by default, removing the previous seven-day query limit.
