@@ -92,9 +92,9 @@ try {
         </div>
         <div id="cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
         <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div id="liveChartContainer" class="bg-white/70 dark:bg-gray-800/70 p-4 rounded-xl shadow flex flex-col">
-                <div id="liveChart" class="flex-1 min-h-[16rem]"></div>
-                <button data-target="liveChartContainer" class="mt-2 px-2 py-1 rounded bg-indigo-500 text-white hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700 fullscreen-btn">Full Screen</button>
+            <div id="skyImageContainer" class="bg-white/70 dark:bg-gray-800/70 p-4 rounded-xl shadow flex flex-col">
+                <img id="skyImage" alt="Sky image" class="flex-1 object-contain min-h-[16rem]" />
+                <button data-target="skyImageContainer" class="mt-2 px-2 py-1 rounded bg-indigo-500 text-white hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700 fullscreen-btn">Full Screen</button>
             </div>
             <div id="safeChartContainer" class="bg-white/70 dark:bg-gray-800/70 p-4 rounded-xl shadow flex flex-col">
                 <div id="safeChart" class="flex-1 min-h-[16rem]"></div>
@@ -114,9 +114,6 @@ try {
     const port = 8083; // default WebSocket port for MQTT
 const brokerHost = (host === 'localhost' || host === '127.0.0.1') ? window.location.hostname : host;
 const topicEntries = Object.entries(topics);
-let selectedName = topicEntries.length ? topicEntries[0][0] : '';
-let selectedTopic = topicEntries.length ? topicEntries[0][1].topic : null;
-let selectedUnit = topicEntries.length ? (topicEntries[0][1].unit || '') : '';
 
 const envTopicNames = ['clouds', 'light', 'sqm'];
 const envSeriesMap = {};
@@ -163,12 +160,6 @@ const envSeries = envTopicNames.map(name => {
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 3v18h18M6 15l4-4 3 3 7-7" />
                         </svg>
                     </a>
-                    <button class="p-1 rounded bg-indigo-500 text-white hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700 show-chart inline-flex items-center justify-center" data-topic="${topic}" data-name="${name}" aria-label="Show Live Chart">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12c1.607-4.205 5.64-7.25 9.75-7.25s8.143 3.045 9.75 7.25c-1.607 4.205-5.64 7.25-9.75 7.25S3.857 16.205 2.25 12z" />
-                            <circle cx="12" cy="12" r="3" />
-                        </svg>
-                    </button>
                 </div>
             </div>
             <div class="w-1/2 flex items-center justify-center">
@@ -179,17 +170,7 @@ const envSeries = envTopicNames.map(name => {
         cardsContainer.appendChild(card);
     });
 
-    document.addEventListener('click', e => {
-        const btn = e.target.closest('.show-chart');
-        if (btn) {
-            selectedTopic = btn.dataset.topic;
-            selectedName = btn.dataset.name;
-            selectedUnit = topics[selectedName] && topics[selectedName].unit ? topics[selectedName].unit : '';
-            chart.series[0].setData([]);
-            chart.setTitle({ text: 'Live Sensor Data: ' + selectedName + (selectedUnit ? ' (' + selectedUnit + ')' : '') });
-            chart.yAxis[0].setTitle({ text: selectedUnit });
-        }
-    });
+
 
     const statusEl = document.getElementById('mqttStatus');
     let client;
@@ -231,6 +212,11 @@ const envSeries = envTopicNames.map(name => {
         scheduleReconnect();
     }
     function onMessageArrived(topic, message) {
+        if (topic === 'Observatory/skyimage') {
+            const img = document.getElementById('skyImage');
+            img.src = 'data:image/jpeg;base64,' + message.toString();
+            return;
+        }
         const value = parseFloat(message.toString());
         const entry = topicEntries.find(([, cfg]) => cfg.topic === topic);
         if (entry) {
@@ -252,10 +238,6 @@ const envSeries = envTopicNames.map(name => {
                 }
             }
         }
-        if (topic === selectedTopic) {
-            const x = (new Date()).getTime();
-            chart.series[0].addPoint([x, value], true, chart.series[0].data.length > 40);
-        }
         const envIndex = envSeriesMap[topic];
         if (envIndex !== undefined) {
             const x = (new Date()).getTime();
@@ -266,6 +248,7 @@ const envSeries = envTopicNames.map(name => {
         updateStatus('Connected', 'text-green-600');
         connectAttempts = 0;
         Object.values(topics).forEach(cfg => client.subscribe(cfg.topic));
+        client.subscribe('Observatory/skyimage');
     }
 
     function loadMQTT(urls, idx = 0) {
@@ -285,14 +268,6 @@ const envSeries = envTopicNames.map(name => {
         'https://unpkg.com/mqtt/dist/mqtt.min.js',
         'https://cdn.jsdelivr.net/npm/mqtt/dist/mqtt.min.js'
     ]);
-
-    const chart = Highcharts.chart('liveChart', {
-        chart: { type: 'spline' },
-        title: { text: selectedName ? 'Live Sensor Data: ' + selectedName + (selectedUnit ? ' (' + selectedUnit + ')' : '') : 'Live Sensor Data' },
-        xAxis: { type: 'datetime' },
-        yAxis: { title: { text: selectedUnit } },
-        series: [{ name: 'Value', data: [] }]
-    });
 
     const safeCategories = safeData.map(r => r.day);
     const safeHours = safeData.map(r => parseFloat(r.hours));
@@ -337,14 +312,14 @@ const envSeries = envTopicNames.map(name => {
         const textColor = isDark ? '#F9FAFB' : '#1F2937';
         const bgColor = isDark ? '#1f2937' : '#FFFFFF';
         const gridColor = isDark ? '#374151' : '#e5e7eb';
-        [chart, safeChart, envChart].forEach(c => c.update({
+        [safeChart, envChart].forEach(c => c.update({
             chart: { backgroundColor: bgColor },
             title: { style: { color: textColor } },
             xAxis: { labels: { style: { color: textColor } }, gridLineColor: gridColor, lineColor: textColor },
             yAxis: { labels: { style: { color: textColor } }, title: { style: { color: textColor } }, gridLineColor: gridColor, lineColor: textColor },
             legend: { itemStyle: { color: textColor } }
         }, false));
-        [chart, safeChart, envChart].forEach(c => c.redraw());
+        [safeChart, envChart].forEach(c => c.redraw());
     }
 
     function updateModeIcon() {
