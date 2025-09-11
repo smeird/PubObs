@@ -46,3 +46,5 @@ Design decisions added after this file should be appended here for future refere
 35. Safe-hour charts include time from the last record to the current period end to account for ongoing clear conditions.
 
 36. The index page displays a sky image updated via the MQTT topic `Observatory/skyimage` instead of a live sensor graph.
+
+37. Historical charts use Highcharts' range selector to manage date ranges instead of manual date inputs.
