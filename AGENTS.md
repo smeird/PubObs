@@ -44,3 +44,5 @@ Design decisions added after this file should be appended here for future refere
 34. The site includes a `clear.php` page that charts monthly safe observing hours for a selected year and is linked from the index page.
 
 35. Safe-hour charts include time from the last record to the current period end to account for ongoing clear conditions.
+
+36. The index page displays a sky image updated via the MQTT topic `Observatory/skyimage` instead of a live sensor graph.
