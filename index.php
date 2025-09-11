@@ -93,7 +93,7 @@ try {
         <div id="cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
         <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
             <div id="skyImageContainer" class="bg-white/70 dark:bg-gray-800/70 p-4 rounded-xl shadow flex flex-col">
-                <img id="skyImage" alt="Sky image" class="flex-1 object-contain min-h-[16rem]" />
+                <img id="skyImage" alt="Sky image" class="flex-1 object-contain min-h-[16rem] w-[120%]" />
                 <button data-target="skyImageContainer" class="mt-2 px-2 py-1 rounded bg-indigo-500 text-white hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700 fullscreen-btn">Full Screen</button>
             </div>
             <div id="safeChartContainer" class="bg-white/70 dark:bg-gray-800/70 p-4 rounded-xl shadow flex flex-col">
