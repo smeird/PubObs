@@ -10,7 +10,7 @@ Website that publicly shows observatory sensor data. The site displays live and 
 - Tabulator for data tables
 - Tailwind CSS default styling with light and dark modes
 - Index page lists all live data sources with links to historical views, shows a live sky image sourced via MQTT, and displays nightly observable hours from the past 30 days
-- Historical pages default to the last week of readings and include date range controls to browse any period
+- Historical pages default to the last week of readings and use Highcharts controls to browse any period
 - Clear page shows safe observing hours aggregated by month for a selected year
 
 ## Sensor Data Tables

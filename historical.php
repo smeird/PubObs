@@ -28,6 +28,7 @@ $dbHost = getenv('DB_HOST');
 $dbName = getenv('DB_NAME');
 $dbUser = getenv('DB_USER');
 $dbPass = getenv('DB_PASS');
+$format = $_GET['format'] ?? '';
 
 // Determine requested date range; default to the last 7 days and cap span to one week
 $endParam = $_GET['end'] ?? null;
@@ -55,6 +56,12 @@ try {
 } catch (Exception $e) {
     $rows = [];
 }
+
+if ($format === 'json') {
+    header('Content-Type: application/json');
+    echo json_encode($rows);
+    exit;
+}
 ?>
 <!DOCTYPE html>
 <html class="h-full" lang="en">
@@ -69,7 +76,7 @@ try {
             darkMode: 'class',
         }
     </script>
-    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/stock/highstock.js"></script>
 </head>
 <body class="min-h-screen bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-gray-800 dark:to-gray-900 text-gray-800 dark:text-gray-100 font-sans">
     <div class="max-w-4xl mx-auto p-6 bg-white/80 dark:bg-gray-800/80 backdrop-blur rounded-xl shadow-lg">
@@ -80,31 +87,50 @@ try {
             <button id="modeToggle" class="p-2 rounded bg-indigo-500 text-white hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700" aria-label="Switch to Dark Mode">🌙</button>
 
         </div>
-        <form method="get" class="mb-6 flex flex-wrap items-end gap-4">
-            <input type="hidden" name="topic" value="<?php echo htmlspecialchars($key); ?>">
-            <label class="flex flex-col">
-                <span>Start</span>
-                <input type="date" name="start" value="<?php echo htmlspecialchars($start); ?>" class="border rounded px-2 py-1 bg-white dark:bg-gray-700">
-            </label>
-            <label class="flex flex-col">
-                <span>End</span>
-                <input type="date" name="end" value="<?php echo htmlspecialchars($end); ?>" class="border rounded px-2 py-1 bg-white dark:bg-gray-700">
-            </label>
-            <button type="submit" class="px-3 py-1 rounded bg-indigo-500 text-white hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700">Apply</button>
-        </form>
+        
         <div id="histChart" class="mb-6 bg-white/70 dark:bg-gray-800/70 p-4 rounded-xl shadow"></div>
         <button id="downloadCsv" class="px-3 py-1 rounded bg-indigo-500 text-white hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700">Download CSV</button>
     </div>
 
     <script>
     const modeToggle = document.getElementById('modeToggle');
-    const data = <?php echo json_encode($rows); ?>;
+    let data = <?php echo json_encode($rows); ?>;
     const unit = <?php echo json_encode($unit); ?>;
+    const topic = <?php echo json_encode($key); ?>;
     const chartData = data.map(r => [Date.parse(r.timestamp), parseFloat(r.value)]);
-    const histChart = Highcharts.chart('histChart', {
+
+    async function fetchRange(start, end) {
+        const params = new URLSearchParams({ topic, start, end, format: 'json' });
+        const response = await fetch(`historical.php?${params.toString()}`);
+        const rows = await response.json();
+        data = rows;
+        return rows.map(r => [Date.parse(r.timestamp), parseFloat(r.value)]);
+    }
+
+    const histChart = Highcharts.stockChart('histChart', {
         chart: { type: 'line' },
         title: { text: 'Historical Data' },
-        xAxis: { type: 'datetime' },
+        rangeSelector: {
+            selected: 3,
+            buttons: [
+                { type: 'day', count: 1, text: '1d' },
+                { type: 'day', count: 3, text: '3d' },
+                { type: 'week', count: 1, text: '1w' },
+                { type: 'all', text: 'All' }
+            ]
+        },
+        xAxis: {
+            type: 'datetime',
+            events: {
+                afterSetExtremes: async function (e) {
+                    if (!e.trigger) return;
+                    const start = new Date(e.min).toISOString().slice(0, 10);
+                    const end = new Date(e.max).toISOString().slice(0, 10);
+                    const newData = await fetchRange(start, end);
+                    histChart.series[0].setData(newData);
+                }
+            }
+        },
         yAxis: { title: { text: unit } },
         series: [{ name: <?php echo json_encode($key . ($unit ? ' (' . $unit . ')' : '')); ?>, data: chartData }]
     });
@@ -118,7 +144,15 @@ try {
             chart: { backgroundColor: bgColor },
             title: { style: { color: textColor } },
             xAxis: { labels: { style: { color: textColor } }, gridLineColor: gridColor, lineColor: textColor },
-            yAxis: { labels: { style: { color: textColor } }, title: { style: { color: textColor } }, gridLineColor: gridColor, lineColor: textColor }
+            yAxis: { labels: { style: { color: textColor } }, title: { style: { color: textColor } }, gridLineColor: gridColor, lineColor: textColor },
+            rangeSelector: {
+                inputStyle: { color: textColor },
+                labelStyle: { color: textColor },
+                buttonTheme: { style: { color: textColor } }
+            },
+            navigator: {
+                xAxis: { labels: { style: { color: textColor } } }
+            }
         });
     }
 
