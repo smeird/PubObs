@@ -30,21 +30,32 @@ $dbUser = getenv('DB_USER');
 $dbPass = getenv('DB_PASS');
 $format = $_GET['format'] ?? '';
 
-// Determine requested date range; if none provided, return all data
+// Determine requested date range; support optional start or end
 $endParam   = $_GET['end']   ?? null;
 $startParam = $_GET['start'] ?? null;
 
 try {
     $pdo = new PDO("mysql:host=$dbHost;dbname=$dbName;charset=utf8", $dbUser, $dbPass, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
-    if ($startParam && $endParam) {
-        $startDate = $startParam . ' 00:00:00';
-        $endDate   = $endParam   . ' 23:59:59';
-        $stmt = $pdo->prepare("SELECT dateTime AS timestamp, `$column` AS value FROM obs_weather WHERE dateTime BETWEEN :start AND :end ORDER BY dateTime ASC");
-        $stmt->execute(['start' => $startDate, 'end' => $endDate]);
-    } else {
-        $stmt = $pdo->prepare("SELECT dateTime AS timestamp, `$column` AS value FROM obs_weather ORDER BY dateTime ASC");
-        $stmt->execute();
+
+    $conditions = [];
+    $params = [];
+    if ($startParam) {
+        $conditions[] = 'dateTime >= :start';
+        $params['start'] = $startParam . ' 00:00:00';
     }
+    if ($endParam) {
+        $conditions[] = 'dateTime <= :end';
+        $params['end'] = $endParam . ' 23:59:59';
+    }
+
+    $query = "SELECT dateTime AS timestamp, `$column` AS value FROM obs_weather";
+    if ($conditions) {
+        $query .= ' WHERE ' . implode(' AND ', $conditions);
+    }
+    $query .= ' ORDER BY dateTime ASC';
+
+    $stmt = $pdo->prepare($query);
+    $stmt->execute($params);
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (Exception $e) {
     $rows = [];
