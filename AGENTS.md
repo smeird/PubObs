@@ -50,3 +50,4 @@ Design decisions added after this file should be appended here for future refere
 37. Historical charts use Highcharts' range selector to manage date ranges instead of manual date inputs.
 
 38. Historical pages load all available data by default, removing the previous seven-day query limit.
+39. Historical queries accept optional `start` or `end` parameters to filter results without requiring both.
