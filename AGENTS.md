@@ -40,15 +40,11 @@ Design decisions added after this file should be appended here for future refere
 31. The index page displays an icon before each MQTT topic name in its card.
 32. Observable hours are calculated by summing time intervals where the `safe` field equals 1.
 33. Safe data aggregation processes database rows sequentially to limit memory usage.
-
 34. The site includes a `clear.php` page that charts monthly safe observing hours for a selected year and is linked from the index page.
-
 35. Safe-hour charts include time from the last record to the current period end to account for ongoing clear conditions.
-
 36. The index page displays a sky image updated via the MQTT topic `Observatory/skyimage` instead of a live sensor graph.
-
 37. Historical charts use Highcharts' range selector to manage date ranges instead of manual date inputs.
-
 38. Historical pages load all available data by default, removing the previous seven-day query limit.
 39. Historical queries accept optional `start` or `end` parameters to filter results without requiring both.
 40. Historical pages fetch data asynchronously via a JSON endpoint to handle large result sets without exhausting server memory.
+

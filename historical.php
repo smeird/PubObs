@@ -34,6 +34,7 @@ $format = $_GET['format'] ?? '';
 $endParam   = $_GET['end']   ?? null;
 $startParam = $_GET['start'] ?? null;
 
+
 if ($format === 'json') {
     try {
         $pdo = new PDO("mysql:host=$dbHost;dbname=$dbName;charset=utf8", $dbUser, $dbPass, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
