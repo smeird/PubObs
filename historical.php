@@ -30,29 +30,49 @@ $dbUser = getenv('DB_USER');
 $dbPass = getenv('DB_PASS');
 $format = $_GET['format'] ?? '';
 
-// Determine requested date range; if none provided, return all data
+// Determine requested date range; support optional start or end
 $endParam   = $_GET['end']   ?? null;
 $startParam = $_GET['start'] ?? null;
 
-try {
-    $pdo = new PDO("mysql:host=$dbHost;dbname=$dbName;charset=utf8", $dbUser, $dbPass, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
-    if ($startParam && $endParam) {
-        $startDate = $startParam . ' 00:00:00';
-        $endDate   = $endParam   . ' 23:59:59';
-        $stmt = $pdo->prepare("SELECT dateTime AS timestamp, `$column` AS value FROM obs_weather WHERE dateTime BETWEEN :start AND :end ORDER BY dateTime ASC");
-        $stmt->execute(['start' => $startDate, 'end' => $endDate]);
-    } else {
-        $stmt = $pdo->prepare("SELECT dateTime AS timestamp, `$column` AS value FROM obs_weather ORDER BY dateTime ASC");
-        $stmt->execute();
-    }
-    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-} catch (Exception $e) {
-    $rows = [];
-}
-
 if ($format === 'json') {
-    header('Content-Type: application/json');
-    echo json_encode($rows);
+    try {
+        $pdo = new PDO("mysql:host=$dbHost;dbname=$dbName;charset=utf8", $dbUser, $dbPass, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
+
+        $conditions = [];
+        $params = [];
+        if ($startParam) {
+            $conditions[] = 'dateTime >= :start';
+            $params['start'] = $startParam . ' 00:00:00';
+        }
+        if ($endParam) {
+            $conditions[] = 'dateTime <= :end';
+            $params['end'] = $endParam . ' 23:59:59';
+        }
+
+        $query = "SELECT dateTime AS timestamp, `$column` AS value FROM obs_weather";
+        if ($conditions) {
+            $query .= ' WHERE ' . implode(' AND ', $conditions);
+        }
+        $query .= ' ORDER BY dateTime ASC';
+
+        $stmt = $pdo->prepare($query);
+        $stmt->execute($params);
+
+        header('Content-Type: application/json');
+        echo '[';
+        $first = true;
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            if (!$first) {
+                echo ',';
+            }
+            echo json_encode($row);
+            $first = false;
+        }
+        echo ']';
+    } catch (Exception $e) {
+        header('Content-Type: application/json');
+        echo '[]';
+    }
     exit;
 }
 ?>
@@ -87,9 +107,11 @@ if ($format === 'json') {
 
     <script>
     const modeToggle = document.getElementById('modeToggle');
-    let data = <?php echo json_encode($rows); ?>;
     const unit = <?php echo json_encode($unit); ?>;
-    const chartData = data.map(r => [Date.parse(r.timestamp), parseFloat(r.value)]);
+    const topic = <?php echo json_encode($key); ?>;
+    const startParam = <?php echo json_encode($startParam); ?>;
+    const endParam = <?php echo json_encode($endParam); ?>;
+    let data = [];
 
     const histChart = Highcharts.stockChart('histChart', {
         chart: { type: 'line' },
@@ -105,8 +127,23 @@ if ($format === 'json') {
         },
         xAxis: { type: 'datetime' },
         yAxis: { title: { text: unit } },
-        series: [{ name: <?php echo json_encode($key . ($unit ? ' (' . $unit . ')' : '')); ?>, data: chartData }]
+        series: [{ name: topic + (unit ? ` (${unit})` : ''), data: [] }]
     });
+
+    function loadData() {
+        const params = new URLSearchParams({ topic, format: 'json' });
+        if (startParam) params.append('start', startParam);
+        if (endParam) params.append('end', endParam);
+        fetch('historical.php?' + params.toString())
+            .then(r => r.json())
+            .then(rows => {
+                data = rows;
+                const chartData = data.map(r => [Date.parse(r.timestamp), parseFloat(r.value)]);
+                histChart.series[0].setData(chartData);
+            });
+    }
+
+    loadData();
 
     function updateChartTheme() {
         const isDark = document.documentElement.classList.contains('dark');
