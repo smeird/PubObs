@@ -304,19 +304,30 @@ let envChart = null;
             img.src = skyImageUrl;
             return;
         }
-        const value = parseFloat(message.toString());
+        const rawValue = message.toString();
+        const numericValue = parseFloat(rawValue);
+        const hasNumericValue = Number.isFinite(numericValue);
+        const displayValue = hasNumericValue
+            ? numericValue.toLocaleString(undefined, {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 2,
+                useGrouping: false
+            })
+            : rawValue;
         const entry = topicEntries.find(([, cfg]) => cfg.topic === topic);
         if (entry) {
             const [name, cfg] = entry;
             const id = 'value-' + sanitize(name);
             const el = document.getElementById(id);
-            if (el) { el.textContent = value; }
+            if (el) { el.textContent = displayValue; }
             const statusEl = document.getElementById('status-' + sanitize(name));
             if (statusEl) {
-                if (cfg.green !== undefined && cfg.condition) {
+                const threshold = parseFloat(cfg.green);
+                const hasThreshold = Number.isFinite(threshold);
+                if (hasNumericValue && hasThreshold && cfg.condition) {
                     let match = false;
-                    if (cfg.condition === 'above') match = value > cfg.green;
-                    else if (cfg.condition === 'below') match = value < cfg.green;
+                    if (cfg.condition === 'above') match = numericValue > threshold;
+                    else if (cfg.condition === 'below') match = numericValue < threshold;
                     if (match) {
                         statusEl.textContent = 'Favorable';
                         statusEl.className = `${statusBaseClasses} bg-emerald-100/90 text-emerald-700 ring-emerald-300/60`;
@@ -331,16 +342,16 @@ let envChart = null;
             }
         }
         const envIndex = envSeriesMap[topic];
-        if (envIndex !== undefined) {
+        if (envIndex !== undefined && hasNumericValue) {
             const x = Date.now();
             const points = envSeriesData[envIndex];
-            points.push([x, value]);
+            points.push([x, numericValue]);
             if (points.length > 40) points.shift();
             if (envChart) {
                 const series = envChart.series[envIndex];
                 if (series) {
                     const shouldShift = series.data.length >= 40;
-                    series.addPoint([x, value], true, shouldShift);
+                    series.addPoint([x, numericValue], true, shouldShift);
                 }
             }
         }
