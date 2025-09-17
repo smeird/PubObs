@@ -125,7 +125,7 @@ $todaySafeHoursDisplay = $todaySafeHours !== null ? number_format($todaySafeHour
                 </div>
             </div>
         </section>
-        <div id="cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        <div id="cards" class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 auto-rows-fr"></div>
         <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
             <div id="skyImageContainer" class="bg-white/70 dark:bg-gray-800/70 p-4 rounded-xl shadow flex flex-col">
                 <img id="skyImage" alt="Sky image" class="flex-1 object-contain min-h-[16rem] w-[120%]" />
@@ -177,31 +177,55 @@ const envSeries = envTopicNames.map(name => {
         dewpoint: '❄️'
     };
 
-    topicEntries.forEach(([name, cfg]) => {
-        const topic = cfg.topic;
+    const gradientPalettes = [
+        'from-indigo-500/20 via-white/80 to-white/50 dark:from-indigo-500/20 dark:via-slate-900/70 dark:to-slate-900/40',
+        'from-sky-500/20 via-white/80 to-white/50 dark:from-sky-500/20 dark:via-slate-900/70 dark:to-slate-900/40',
+        'from-purple-500/20 via-white/80 to-white/50 dark:from-purple-500/20 dark:via-slate-900/70 dark:to-slate-900/40',
+        'from-emerald-500/20 via-white/80 to-white/50 dark:from-emerald-500/20 dark:via-slate-900/70 dark:to-slate-900/40'
+    ];
+    const statusBaseClasses = 'inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide shadow-sm ring-1 ring-inset transition-colors backdrop-blur-sm';
+
+    topicEntries.forEach(([name, cfg], idx) => {
         const id = 'value-' + sanitize(name);
         const card = document.createElement('div');
+        const gradient = gradientPalettes[idx % gradientPalettes.length];
 
         card.id = 'card-' + sanitize(name);
-        card.className = 'bg-gray-100 dark:bg-gray-800 p-4 rounded shadow h-32 flex border-4 border-transparent';
+        card.className = `relative flex h-full flex-col overflow-hidden rounded-3xl bg-gradient-to-br ${gradient} p-6 shadow-xl shadow-indigo-200/60 dark:shadow-black/40 ring-1 ring-white/40 dark:ring-white/10 transition`; 
         const icon = icons[name] || '📟';
-        const unitMarkup = cfg.unit ? `<span class="text-2xl ml-1">${cfg.unit}</span>` : '';
+        const label = name.replace(/[_-]/g, ' ');
+        const unitMarkup = cfg.unit ? `<span class="ml-1 text-lg font-medium text-slate-500 dark:text-slate-300">${cfg.unit}</span>` : '';
         card.innerHTML = `
-            <div class="flex flex-col justify-between w-1/2">
-                <h2 class="text-xl font-semibold flex items-center"><span class="mr-2">${icon}</span>${name}</h2>
-
-                <div class="mt-2 flex space-x-2">
-                    <a href="historical.php?topic=${encodeURIComponent(name)}" class="p-1 rounded bg-indigo-500 text-white hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700 inline-flex" aria-label="View History">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 3v18h18M6 15l4-4 3 3 7-7" />
-                        </svg>
-                    </a>
+            <div class="pointer-events-none absolute -top-20 -right-10 h-48 w-48 rounded-full bg-white/40 dark:bg-white/10 blur-3xl"></div>
+            <div class="pointer-events-none absolute -bottom-24 -left-16 h-56 w-56 rounded-full bg-indigo-200/30 dark:bg-indigo-500/10 blur-3xl"></div>
+            <div class="relative flex h-full flex-col justify-between gap-6">
+                <div class="flex flex-wrap items-start justify-between gap-3">
+                    <div class="flex items-center gap-3">
+                        <div class="relative">
+                            <span class="relative z-10 text-3xl sm:text-4xl">${icon}</span>
+                            <span class="pointer-events-none absolute -inset-2 rounded-full bg-white/60 dark:bg-white/10 blur-lg"></span>
+                        </div>
+                        <div class="flex flex-col">
+                            <h2 class="text-lg font-semibold capitalize text-slate-900 dark:text-slate-100">${label}</h2>
+                            <p class="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">Live sensor</p>
+                        </div>
+                    </div>
+                    <span id="status-${sanitize(name)}" class="${statusBaseClasses} bg-slate-100/80 text-slate-600 ring-slate-200/70">Monitoring</span>
+                </div>
+                <div class="flex flex-col gap-4">
+                    <p class="text-4xl font-semibold leading-tight text-slate-900 dark:text-white sm:text-5xl">
+                        <span id="${id}">--</span>${unitMarkup}
+                    </p>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <a href="historical.php?topic=${encodeURIComponent(name)}" class="inline-flex items-center gap-2 rounded-full bg-indigo-500/90 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-indigo-600/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-200 dark:bg-indigo-500/80 dark:hover:bg-indigo-400/90" aria-label="View History">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 3v18h18M6 15l4-4 3 3 7-7" />
+                            </svg>
+                            View History
+                        </a>
+                    </div>
                 </div>
             </div>
-            <div class="w-1/2 flex items-center justify-center">
-                <p class="text-right text-6xl leading-none flex items-baseline justify-end"><span id="${id}">--</span>${unitMarkup}</p>
-            </div>
-
         `;
         cardsContainer.appendChild(card);
     });
@@ -263,17 +287,22 @@ const envSeries = envTopicNames.map(name => {
             const id = 'value-' + sanitize(name);
             const el = document.getElementById(id);
             if (el) { el.textContent = value; }
-            const card = document.getElementById('card-' + sanitize(name));
-            if (card && cfg.green !== undefined && cfg.condition) {
-                let match = false;
-                if (cfg.condition === 'above') match = value > cfg.green;
-                else if (cfg.condition === 'below') match = value < cfg.green;
-                if (match) {
-                    card.classList.remove('border-transparent');
-                    card.classList.add('border-green-500');
+            const statusEl = document.getElementById('status-' + sanitize(name));
+            if (statusEl) {
+                if (cfg.green !== undefined && cfg.condition) {
+                    let match = false;
+                    if (cfg.condition === 'above') match = value > cfg.green;
+                    else if (cfg.condition === 'below') match = value < cfg.green;
+                    if (match) {
+                        statusEl.textContent = 'Favorable';
+                        statusEl.className = `${statusBaseClasses} bg-emerald-100/90 text-emerald-700 ring-emerald-300/60`;
+                    } else {
+                        statusEl.textContent = 'Warning';
+                        statusEl.className = `${statusBaseClasses} bg-rose-100/90 text-rose-700 ring-rose-300/60`;
+                    }
                 } else {
-                    card.classList.remove('border-green-500');
-                    card.classList.add('border-transparent');
+                    statusEl.textContent = 'Monitoring';
+                    statusEl.className = `${statusBaseClasses} bg-slate-100/80 text-slate-600 ring-slate-200/70`;
                 }
             }
         }
