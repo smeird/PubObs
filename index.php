@@ -9,6 +9,8 @@ $dbUser = getenv('DB_USER');
 $dbPass = getenv('DB_PASS');
 
 $safeData = [];
+$todaySafeHours = null;
+$today = date('Y-m-d');
 try {
     $pdo = new PDO("mysql:host=$dbHost;dbname=$dbName;charset=utf8", $dbUser, $dbPass, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
 
@@ -50,11 +52,17 @@ try {
     }
 
     foreach ($dayMap as $day => $hours) {
-        $safeData[] = ['day' => $day, 'hours' => round($hours, 2)];
+        $rounded = round($hours, 2);
+        $safeData[] = ['day' => $day, 'hours' => $rounded];
+        if ($day === $today) {
+            $todaySafeHours = $rounded;
+        }
     }
 } catch (Exception $e) {
     $safeData = [];
+    $todaySafeHours = null;
 }
+$todaySafeHoursDisplay = $todaySafeHours !== null ? number_format($todaySafeHours, 2) : '--';
 ?>
 <!DOCTYPE html>
 <html class="h-full" lang="en">
@@ -75,21 +83,48 @@ try {
 </head>
 <body class="min-h-screen bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-gray-800 dark:to-gray-900 text-gray-800 dark:text-gray-100 font-sans">
     <div class="max-w-6xl mx-auto p-6">
-        <div class="flex justify-between items-center mb-8 bg-white/70 dark:bg-gray-800/70 backdrop-blur p-4 rounded-lg shadow">
-            <h1 class="flex items-center text-2xl font-bold">
-                <img src="favicon.svg" alt="" class="w-8 h-8 mr-2">
-                <span class="hidden sm:inline">Wheathampstead AstroPhotography Conditions</span>
-                <span class="sm:hidden">WAPC</span>
-            </h1>
-            <div class="flex items-center space-x-2">
-                <span id="mqttStatus" class="text-sm text-yellow-600">Connecting...</span>
-
-                <a href="clear.php" class="text-indigo-600 dark:text-indigo-400 hover:underline">Clear by Month</a>
-
-                <button id="modeToggle" class="p-2 rounded bg-indigo-500 text-white hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700" aria-label="Switch to Dark Mode">🌙</button>
-
+        <section class="relative mb-8 overflow-hidden rounded-3xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white shadow-xl dark:from-indigo-600 dark:via-purple-700 dark:to-pink-700">
+            <div class="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.7),transparent_60%)]"></div>
+            <div class="relative px-6 py-10 sm:px-10">
+                <div class="grid gap-10 lg:grid-cols-2 lg:items-center">
+                    <div class="flex flex-col gap-4">
+                        <div class="flex items-center gap-3">
+                            <img src="favicon.svg" alt="" class="h-12 w-12 rounded-full bg-white/20 p-2 shadow-lg" />
+                            <div>
+                                <p class="text-xs uppercase tracking-[0.3em] text-white/80">Wheathampstead Observatory</p>
+                                <h1 class="text-3xl font-semibold sm:text-4xl">Wheathampstead AstroPhotography Conditions</h1>
+                            </div>
+                        </div>
+                        <p class="max-w-xl text-base text-white/90 sm:text-lg">Live observatory telemetry, safety insights, and the latest sky conditions to plan your next observing session.</p>
+                    </div>
+                    <div class="flex flex-col items-stretch gap-6">
+                        <div class="flex flex-wrap items-center justify-start gap-3 lg:justify-end">
+                            <span id="mqttStatus" class="inline-flex items-center gap-2 rounded-full bg-amber-100/90 px-4 py-2 text-sm font-semibold text-amber-800 shadow-sm ring-1 ring-white/50 backdrop-blur">Connecting...</span>
+                            <button id="modeToggle" class="inline-flex items-center gap-2 rounded-full bg-white/20 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent" aria-label="Switch to Dark Mode">
+                                🌙 <span class="hidden sm:inline">Dark mode</span>
+                            </button>
+                        </div>
+                        <div class="flex flex-col gap-4 sm:flex-row sm:items-stretch sm:justify-end">
+                            <div class="rounded-2xl bg-white/15 px-6 py-5 text-white shadow-lg ring-1 ring-white/40 backdrop-blur">
+                                <p class="text-xs font-semibold uppercase tracking-wider text-white/70">Today's safe observing time</p>
+                                <p class="mt-2 text-4xl font-bold sm:text-5xl">
+                                    <?= htmlspecialchars($todaySafeHoursDisplay, ENT_QUOTES, 'UTF-8'); ?>
+                                    <?php if ($todaySafeHours !== null): ?>
+                                        <span class="ml-1 text-lg font-semibold">hrs</span>
+                                    <?php endif; ?>
+                                </p>
+                                <p class="mt-1 text-xs text-white/70">Automatically updated from observatory sensors.</p>
+                            </div>
+                            <nav aria-label="Quick links" class="flex flex-col gap-3 sm:items-end">
+                                <a href="clear.php" class="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70">Clear by Month</a>
+                                <a href="#safeChart" class="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70">Safe Hours Chart</a>
+                                <a href="#envChart" class="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70">Environment Trends</a>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
+        </section>
         <div id="cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
         <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
             <div id="skyImageContainer" class="bg-white/70 dark:bg-gray-800/70 p-4 rounded-xl shadow flex flex-col">
@@ -179,12 +214,12 @@ const envSeries = envTopicNames.map(name => {
 
     function updateStatus(text, cls) {
         statusEl.textContent = text;
-        statusEl.className = 'text-sm ' + cls;
+        statusEl.className = 'inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold shadow-sm ring-1 ring-white/50 backdrop-blur ' + cls;
     }
 
     function scheduleReconnect() {
         const delay = Math.min(1000 * Math.pow(2, connectAttempts), 30000);
-        updateStatus('Reconnecting...', 'text-yellow-600');
+        updateStatus('Reconnecting...', 'bg-amber-100/90 text-amber-800');
         setTimeout(() => {
             connectAttempts++;
             connectClient();
@@ -194,7 +229,7 @@ const envSeries = envTopicNames.map(name => {
     function connectClient() {
         if (!window.mqtt) {
             console.warn('MQTT.js library is not loaded');
-            updateStatus('MQTT unavailable', 'text-red-600');
+            updateStatus('MQTT unavailable', 'bg-red-100 text-red-700');
             return;
         }
         const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
@@ -209,7 +244,7 @@ const envSeries = envTopicNames.map(name => {
 
     function onConnectionLost() {
         console.log('Connection lost');
-        updateStatus('Disconnected', 'text-red-600');
+        updateStatus('Disconnected', 'bg-red-100 text-red-700');
         scheduleReconnect();
     }
     function onMessageArrived(topic, message) {
@@ -249,7 +284,7 @@ const envSeries = envTopicNames.map(name => {
         }
     }
     function onConnect() {
-        updateStatus('Connected', 'text-green-600');
+        updateStatus('Connected', 'bg-emerald-100 text-emerald-700');
         connectAttempts = 0;
         Object.values(topics).forEach(cfg => client.subscribe(cfg.topic));
         client.subscribe('Observatory/skyimage');
@@ -258,7 +293,7 @@ const envSeries = envTopicNames.map(name => {
     function loadMQTT(urls, idx = 0) {
         if (idx >= urls.length) {
             console.warn('MQTT.js library failed to load');
-            updateStatus('MQTT unavailable', 'text-red-600');
+            updateStatus('MQTT unavailable', 'bg-red-100 text-red-700');
             return;
         }
         const script = document.createElement('script');
