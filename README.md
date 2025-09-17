@@ -14,7 +14,6 @@ Website that publicly shows observatory sensor data. The site displays live and 
 
 - Historical pages accept optional `start` and `end` query parameters (`YYYY-MM-DD`) to limit the data returned
 - Clear page shows safe observing hours aggregated by month for a selected year
-- Accent font weight can be adjusted from the index page header; the preference is stored in MySQL for consistent styling
 
 ## Sensor Data Tables
 
@@ -54,8 +53,6 @@ ORDER BY dateTime DESC;
 
 MQTT host and topic names are defined in `mqtt_config.json`. Update this file to match your local MQTT broker settings.
 Each topic can optionally include a `green` threshold and a `condition` of `above` or `below` to highlight the card border when the incoming value meets the rule. Topics may also specify a `unit` string to label displayed values. The MQTT WebSocket port is 8083.
-
-Accent typography uses the `site_settings` MySQL table. The `settings.php` endpoint stores the `accent_font_weight` value selected from the index page, and pages read the value to apply consistent styling.
 
 Database credentials are provided to Apache via environment variables:
 
