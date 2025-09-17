@@ -130,12 +130,13 @@ $startJson = json_encode($startParam);
 $endJson = json_encode($endParam);
 $csvNameJson = json_encode($key . '_history.csv');
 
-$script = <<<SCRIPT
+ob_start();
+?>
 <script>
-const unit = {$unitJson};
-const topic = {$topicJson};
-const startParam = {$startJson};
-const endParam = {$endJson};
+const unit = <?= $unitJson ?>;
+const topic = <?= $topicJson ?>;
+const startParam = <?= $startJson ?>;
+const endParam = <?= $endJson ?>;
 let data = [];
 
 function createButtonTheme(isDark) {
@@ -272,13 +273,14 @@ document.getElementById('downloadCsv').addEventListener('click', () => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = {$csvNameJson};
+    a.download = <?= $csvNameJson ?>;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 });
 </script>
-SCRIPT;
+<?php
+$script = ob_get_clean();
 
 layout_end($script);
