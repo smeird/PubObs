@@ -8,7 +8,8 @@
     "safe": { "topic": "Observatory/safe", "green": 0, "condition": "above","unit": "" },
     "sqm": { "topic": "Observatory/sqm", "green": 12, "condition": "above","unit": "mag" },
     "humidity": { "topic": "Observatory/hum", "green": 90, "condition": "below","unit": "%" },
-    "dewpoint": { "topic": "Observatory/dewp", "unit": "°C" }
-  }
+    "dewpoint": { "topic": "Observatory/dewp", "unit": "°C" },
+    "wind":  { "topic": "weather/windSpeed_kph" , "unit": "kph" }
+    }
 }
 
