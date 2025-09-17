@@ -34,7 +34,6 @@ $format = $_GET['format'] ?? '';
 $endParam   = $_GET['end']   ?? null;
 $startParam = $_GET['start'] ?? null;
 
-
 if ($format === 'json') {
     try {
         $pdo = new PDO("mysql:host=$dbHost;dbname=$dbName;charset=utf8", $dbUser, $dbPass, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
@@ -76,127 +75,210 @@ if ($format === 'json') {
     }
     exit;
 }
+
+require_once 'layout.php';
+
+$displayName = ucwords(str_replace(['-', '_'], ' ', $key));
+$pageTitle = 'History: ' . $displayName . ($unit ? ' (' . $unit . ')' : '') . ' - Wheathampstead AstroPhotography Conditions';
+$heroTitle = $displayName . ' History';
+$heroSubtitle = $unit
+    ? 'Explore observatory records in ' . $unit . ' and focus on the ranges that matter most.'
+    : 'Explore observatory records and focus on the ranges that matter most.';
+$heroAside = '<div class="flex flex-col items-start gap-2">'
+    . '<span class="text-xs font-semibold uppercase tracking-widest text-indigo-500 dark:text-indigo-300">Selected Topic</span>'
+    . '<span class="text-lg font-semibold text-gray-900 dark:text-gray-100">' . htmlspecialchars($displayName, ENT_QUOTES) . '</span>';
+if ($unit) {
+    $heroAside .= '<span class="text-sm text-gray-600 dark:text-gray-400">Unit: ' . htmlspecialchars($unit, ENT_QUOTES) . '</span>';
+}
+$heroAside .= '</div>';
+
+$navActions = '<a href="clear.php" class="inline-flex items-center gap-2 rounded-full border border-indigo-200/70 bg-white/70 px-4 py-2 text-sm font-semibold text-indigo-600 transition hover:border-indigo-300 hover:text-indigo-700 dark:border-indigo-700/60 dark:bg-gray-800/60 dark:text-indigo-200 dark:hover:text-indigo-100">'
+    . '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.5">'
+    . '<path stroke-linecap="round" stroke-linejoin="round" d="M16.5 3.75h3.75v3.75M21 3 12.75 11.25" />'
+    . '<path stroke-linecap="round" stroke-linejoin="round" d="M18.75 12v6a2.25 2.25 0 0 1-2.25 2.25h-9A2.25 2.25 0 0 1 5.25 18V9a2.25 2.25 0 0 1 2.25-2.25h6" />'
+    . '</svg>'
+    . '<span>Monthly View</span>'
+    . '</a>';
+
+layout_start($pageTitle, $heroTitle, $heroSubtitle, [
+    'extraHead' => '<script src="https://code.highcharts.com/stock/highstock.js"></script>',
+    'navActions' => $navActions,
+    'heroAside' => $heroAside,
+]);
 ?>
-<!DOCTYPE html>
-<html class="h-full" lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>History: <?php echo htmlspecialchars($key); ?><?php if ($unit) echo ' (' . htmlspecialchars($unit) . ')'; ?> - Wheathampstead AstroPhotography Conditions</title>
-    <link rel="icon" href="favicon.svg" type="image/svg+xml">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-        }
-    </script>
-    <script src="https://code.highcharts.com/stock/highstock.js"></script>
-</head>
-<body class="min-h-screen bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-gray-800 dark:to-gray-900 text-gray-800 dark:text-gray-100 font-sans">
-    <div class="max-w-4xl mx-auto p-6 bg-white/80 dark:bg-gray-800/80 backdrop-blur rounded-xl shadow-lg">
-        <a href="index.php" class="mb-4 inline-block text-indigo-600 dark:text-indigo-400 hover:underline">&larr; Back to Home</a>
-        <div class="flex justify-between items-center mb-6 bg-white/70 dark:bg-gray-800/70 backdrop-blur p-4 rounded-lg shadow">
-
-            <h1 class="text-2xl font-bold">History: <?php echo htmlspecialchars($key); ?></h1>
-            <button id="modeToggle" class="p-2 rounded bg-indigo-500 text-white hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700" aria-label="Switch to Dark Mode">🌙</button>
-
+<section>
+    <div class="space-y-6 rounded-3xl bg-white/70 p-6 shadow dark:bg-gray-800/70">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div class="space-y-1">
+                <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">Trend explorer</h2>
+                <p class="text-sm text-gray-600 dark:text-gray-400">Use the preset buttons or drag the timeline below to refine the range.</p>
+            </div>
+            <button id="downloadCsv" type="button" class="inline-flex items-center gap-2 rounded-full bg-indigo-500 px-4 py-2 text-sm font-semibold text-white shadow transition hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-500">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0 3.5-3.5M12 15l-3.5-3.5M5 21h14" />
+                </svg>
+                <span>Download CSV</span>
+            </button>
         </div>
-        
-        <div id="histChart" class="mb-6 bg-white/70 dark:bg-gray-800/70 p-4 rounded-xl shadow"></div>
-        <button id="downloadCsv" class="px-3 py-1 rounded bg-indigo-500 text-white hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700">Download CSV</button>
+        <div id="histChart" class="h-[28rem] w-full"></div>
     </div>
+</section>
+<?php
+$unitJson = json_encode($unit);
+$topicJson = json_encode($key);
+$startJson = json_encode($startParam);
+$endJson = json_encode($endParam);
+$csvNameJson = json_encode($key . '_history.csv');
 
-    <script>
-    const modeToggle = document.getElementById('modeToggle');
-    const unit = <?php echo json_encode($unit); ?>;
-    const topic = <?php echo json_encode($key); ?>;
-    const startParam = <?php echo json_encode($startParam); ?>;
-    const endParam = <?php echo json_encode($endParam); ?>;
-    let data = [];
+$script = <<<SCRIPT
+<script>
+const unit = {$unitJson};
+const topic = {$topicJson};
+const startParam = {$startJson};
+const endParam = {$endJson};
+let data = [];
 
-    const histChart = Highcharts.stockChart('histChart', {
-        chart: { type: 'line' },
-        title: { text: 'Historical Data' },
-        rangeSelector: {
-            selected: 3,
-            buttons: [
-                { type: 'day', count: 1, text: '1d' },
-                { type: 'day', count: 3, text: '3d' },
-                { type: 'week', count: 1, text: '1w' },
-                { type: 'all', text: 'All' }
-            ]
+function createButtonTheme(isDark) {
+    return {
+        fill: isDark ? '#1F2937' : '#EEF2FF',
+        stroke: 'transparent',
+        style: {
+            color: isDark ? '#E5E7EB' : '#312E81',
+            fontWeight: '600'
         },
-        xAxis: { type: 'datetime' },
-        yAxis: { title: { text: unit } },
-        series: [{ name: topic + (unit ? ` (${unit})` : ''), data: [] }]
-    });
-
-    function loadData() {
-        const params = new URLSearchParams({ topic, format: 'json' });
-        if (startParam) params.append('start', startParam);
-        if (endParam) params.append('end', endParam);
-        fetch('historical.php?' + params.toString())
-            .then(r => r.json())
-            .then(rows => {
-                data = rows;
-                const chartData = data.map(r => [Date.parse(r.timestamp), parseFloat(r.value)]);
-                histChart.series[0].setData(chartData);
-            });
-    }
-
-    loadData();
-
-    function updateChartTheme() {
-        const isDark = document.documentElement.classList.contains('dark');
-        const textColor = isDark ? '#F9FAFB' : '#1F2937';
-        const bgColor = isDark ? '#1f2937' : '#FFFFFF';
-        const gridColor = isDark ? '#374151' : '#e5e7eb';
-        histChart.update({
-            chart: { backgroundColor: bgColor },
-            title: { style: { color: textColor } },
-            xAxis: { labels: { style: { color: textColor } }, gridLineColor: gridColor, lineColor: textColor },
-            yAxis: { labels: { style: { color: textColor } }, title: { style: { color: textColor } }, gridLineColor: gridColor, lineColor: textColor },
-            rangeSelector: {
-                inputStyle: { color: textColor },
-                labelStyle: { color: textColor },
-                buttonTheme: { style: { color: textColor } }
+        states: {
+            hover: {
+                fill: isDark ? '#4338CA' : '#C7D2FE',
+                style: {
+                    color: isDark ? '#E0E7FF' : '#312E81'
+                }
             },
-            navigator: {
-                xAxis: { labels: { style: { color: textColor } } }
+            select: {
+                fill: '#4F46E5',
+                style: {
+                    color: '#FFFFFF'
+                }
             }
+        }
+    };
+}
+
+const histChart = Highcharts.stockChart('histChart', {
+    chart: {
+        type: 'line',
+        backgroundColor: 'transparent',
+        style: { fontFamily: 'inherit' }
+    },
+    title: { text: null },
+    legend: { enabled: false },
+    credits: { enabled: false },
+    rangeSelector: {
+        selected: 3,
+        buttons: [
+            { type: 'day', count: 1, text: '1d' },
+            { type: 'day', count: 3, text: '3d' },
+            { type: 'week', count: 1, text: '1w' },
+            { type: 'month', count: 1, text: '1m' },
+            { type: 'all', text: 'All' }
+        ],
+        buttonTheme: createButtonTheme(document.documentElement.classList.contains('dark')),
+        labelStyle: { fontWeight: '600' },
+        inputStyle: { fontWeight: '600' },
+        inputBoxBorderColor: 'transparent',
+        inputBoxBackgroundColor: 'transparent'
+    },
+    navigator: {
+        maskFill: 'rgba(99, 102, 241, 0.2)',
+        outlineColor: 'transparent'
+    },
+    scrollbar: { enabled: false },
+    xAxis: { type: 'datetime' },
+    yAxis: {
+        title: { text: unit || undefined },
+        lineWidth: 1
+    },
+    series: [{
+        name: unit ? (topic + ' (' + unit + ')') : topic,
+        data: [],
+        color: '#4F46E5',
+        lineWidth: 2,
+        tooltip: {
+            valueSuffix: unit ? ' ' + unit : ''
+        }
+    }]
+});
+
+function loadData() {
+    const params = new URLSearchParams({ topic, format: 'json' });
+    if (startParam) params.append('start', startParam);
+    if (endParam) params.append('end', endParam);
+    fetch('historical.php?' + params.toString())
+        .then(r => r.json())
+        .then(rows => {
+            data = rows;
+            const chartData = data.map(r => [Date.parse(r.timestamp), parseFloat(r.value)]);
+            histChart.series[0].setData(chartData, true, true, false);
         });
-    }
+}
 
-    function updateModeIcon() {
-        const isDark = document.documentElement.classList.contains('dark');
-        modeToggle.textContent = isDark ? '🌞' : '🌙';
-        modeToggle.setAttribute('aria-label', isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode');
-    }
+loadData();
 
-    modeToggle.addEventListener('click', () => {
-        document.documentElement.classList.toggle('dark');
-        updateModeIcon();
-        updateChartTheme();
+function updateChartTheme() {
+    const isDark = document.documentElement.classList.contains('dark');
+    const textColor = isDark ? '#F9FAFB' : '#1F2937';
+    const gridColor = isDark ? '#374151' : '#E5E7EB';
+    histChart.update({
+        xAxis: {
+            labels: { style: { color: textColor } },
+            gridLineColor: gridColor,
+            lineColor: gridColor
+        },
+        yAxis: {
+            labels: { style: { color: textColor } },
+            title: { style: { color: textColor } },
+            gridLineColor: gridColor,
+            lineColor: gridColor
+        },
+        navigator: {
+            xAxis: {
+                labels: { style: { color: textColor } }
+            },
+            outlineColor: gridColor
+        },
+        rangeSelector: {
+            buttonTheme: createButtonTheme(isDark),
+            labelStyle: { color: textColor, fontWeight: '600' },
+            inputStyle: {
+                color: textColor,
+                backgroundColor: isDark ? '#111827' : '#FFFFFF',
+                borderColor: gridColor
+            },
+            inputBoxBorderColor: gridColor,
+            inputBoxBackgroundColor: isDark ? '#111827' : '#FFFFFF'
+        }
+    }, false);
+    histChart.redraw();
+}
+
+document.addEventListener('themechange', updateChartTheme);
+updateChartTheme();
+
+document.getElementById('downloadCsv').addEventListener('click', () => {
+    const csvRows = ['timestamp,value'];
+    data.forEach(r => {
+        csvRows.push(r.timestamp + ',' + r.value);
     });
+    const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = {$csvNameJson};
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+});
+</script>
+SCRIPT;
 
-    updateModeIcon();
-    updateChartTheme();
-
-    document.getElementById('downloadCsv').addEventListener('click', () => {
-        const csvRows = ['timestamp,value'];
-        data.forEach(r => {
-            csvRows.push(`${r.timestamp},${r.value}`);
-        });
-        const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = <?php echo json_encode($key . '_history.csv'); ?>;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-    });
-    </script>
-</body>
-</html>
+layout_end($script);
