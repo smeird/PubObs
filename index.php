@@ -117,8 +117,8 @@ $todaySafeHoursDisplay = $todaySafeHours !== null ? number_format($todaySafeHour
                             </div>
                             <nav aria-label="Quick links" class="flex flex-col gap-3 sm:items-end">
                                 <a href="clear.php" class="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70">Clear by Month</a>
-                                <a href="#safeChart" class="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70">Safe Hours Chart</a>
-                                <a href="#envChart" class="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70">Environment Trends</a>
+                                <a href="#chartHub" data-chart-link="safe" class="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70">Safe Hours Chart</a>
+                                <a href="#chartHub" data-chart-link="realtime" class="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70">Environment Trends</a>
                             </nav>
                         </div>
                     </div>
@@ -126,19 +126,41 @@ $todaySafeHoursDisplay = $todaySafeHours !== null ? number_format($todaySafeHour
             </div>
         </section>
         <div id="cards" class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 auto-rows-fr"></div>
-        <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div id="skyImageContainer" class="bg-white/70 dark:bg-gray-800/70 p-4 rounded-xl shadow flex flex-col">
-                <img id="skyImage" alt="Sky image" class="flex-1 object-contain min-h-[16rem] w-[120%]" />
-                <button data-target="skyImageContainer" class="mt-2 px-2 py-1 rounded bg-indigo-500 text-white hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700 fullscreen-btn">Full Screen</button>
-            </div>
-            <div id="safeChartContainer" class="bg-white/70 dark:bg-gray-800/70 p-4 rounded-xl shadow flex flex-col">
-                <div id="safeChart" class="flex-1 min-h-[16rem]"></div>
-                <button data-target="safeChartContainer" class="mt-2 px-2 py-1 rounded bg-indigo-500 text-white hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700 fullscreen-btn">Full Screen</button>
-            </div>
-            <div id="envChartContainer" class="bg-white/70 dark:bg-gray-800/70 p-4 rounded-xl shadow flex flex-col">
-                <div id="envChart" class="flex-1 min-h-[16rem]"></div>
-                <button data-target="envChartContainer" class="mt-2 px-2 py-1 rounded bg-indigo-500 text-white hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700 fullscreen-btn">Full Screen</button>
-            </div>
+        <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[1fr_1.2fr] lg:items-stretch">
+            <section id="skyImageContainer" class="relative flex flex-col overflow-hidden rounded-2xl bg-white/70 p-5 shadow dark:bg-gray-800/70">
+                <div class="flex items-center justify-between gap-3">
+                    <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100">Live Sky Camera</h2>
+                    <button type="button" data-target="skyImageContainer" class="fullscreen-toggle inline-flex h-10 w-10 items-center justify-center rounded-full bg-indigo-500 text-white shadow transition hover:bg-indigo-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-200 dark:bg-indigo-600 dark:hover:bg-indigo-500" aria-label="Toggle full screen for sky image">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 3H5a2 2 0 0 0-2 2v3m0 8v3a2 2 0 0 0 2 2h3m8 0h3a2 2 0 0 0 2-2v-3m0-8V5a2 2 0 0 0-2-2h-3" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="mt-4 flex flex-1 items-center justify-center overflow-hidden rounded-xl bg-gray-900/70 p-2 shadow-inner dark:bg-gray-900/80 min-h-[18rem]">
+                    <img id="skyImage" alt="Sky image" class="max-h-full w-full object-contain" />
+                </div>
+                <p class="mt-4 text-sm text-gray-600 dark:text-gray-300">Updated continuously from the observatory roof camera.</p>
+            </section>
+            <section id="chartHub" class="relative flex flex-col overflow-hidden rounded-2xl bg-white/70 p-5 shadow dark:bg-gray-800/70">
+                <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div role="tablist" aria-label="Chart selection" class="inline-flex rounded-full bg-indigo-50/70 p-1 text-sm font-semibold text-indigo-600 shadow-inner dark:bg-gray-700/70 dark:text-indigo-200">
+                        <button type="button" data-chart-tab="safe" class="chart-tab rounded-full px-4 py-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-200 dark:focus-visible:ring-indigo-400" role="tab" aria-selected="true">Safe Hours</button>
+                        <button type="button" data-chart-tab="realtime" class="chart-tab rounded-full px-4 py-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-200 dark:focus-visible:ring-indigo-400" role="tab" aria-selected="false">Realtime Trends</button>
+                    </div>
+                    <button type="button" data-target="chartHub" class="fullscreen-toggle inline-flex h-10 w-10 items-center justify-center rounded-full bg-indigo-500 text-white shadow transition hover:bg-indigo-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-200 dark:bg-indigo-600 dark:hover:bg-indigo-500" aria-label="Toggle full screen for charts">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 3H5a2 2 0 0 0-2 2v3m0 8v3a2 2 0 0 0 2 2h3m8 0h3a2 2 0 0 0 2-2v-3m0-8V5a2 2 0 0 0-2-2h-3" />
+                        </svg>
+                    </button>
+                </div>
+                <div id="chartDisplay" class="relative mt-4 flex-1 overflow-hidden rounded-xl bg-white/60 p-2 dark:bg-gray-900/40 min-h-[18rem]">
+                    <div id="safeChart" class="absolute inset-0"></div>
+                    <div id="envChart" class="absolute inset-0 hidden"></div>
+                </div>
+                <p class="mt-4 text-sm text-gray-600 dark:text-gray-300">
+                    Compare long-term safe observing hours with live sensor readings using the tabs above.
+                </p>
+            </section>
         </div>
     </div>
 
@@ -156,11 +178,13 @@ const envSeriesMap = {};
 envTopicNames.forEach((name, idx) => {
     if (topics[name]) envSeriesMap[topics[name].topic] = idx;
 });
-const envSeries = envTopicNames.map(name => {
+const envSeriesLabels = envTopicNames.map(name => {
     const cfg = topics[name] || {};
     const unit = cfg.unit ? ` (${cfg.unit})` : '';
-    return { name: name.charAt(0).toUpperCase() + name.slice(1) + unit, data: [] };
+    return name.charAt(0).toUpperCase() + name.slice(1) + unit;
 });
+const envSeriesData = envTopicNames.map(() => []);
+let envChart = null;
 
     const cardsContainer = document.getElementById('cards');
     cardsContainer.innerHTML = '';
@@ -308,8 +332,17 @@ const envSeries = envTopicNames.map(name => {
         }
         const envIndex = envSeriesMap[topic];
         if (envIndex !== undefined) {
-            const x = (new Date()).getTime();
-            envChart.series[envIndex].addPoint([x, value], true, envChart.series[envIndex].data.length > 40);
+            const x = Date.now();
+            const points = envSeriesData[envIndex];
+            points.push([x, value]);
+            if (points.length > 40) points.shift();
+            if (envChart) {
+                const series = envChart.series[envIndex];
+                if (series) {
+                    const shouldShift = series.data.length >= 40;
+                    series.addPoint([x, value], true, shouldShift);
+                }
+            }
         }
     }
     function onConnect() {
@@ -347,31 +380,102 @@ const envSeries = envTopicNames.map(name => {
         series: [{ name: 'Hours', data: safeHours }]
     });
 
-    const envChart = Highcharts.chart('envChart', {
-        chart: { type: 'spline' },
-        title: { text: 'Realtime Clouds, Light, SQM' },
-        xAxis: { type: 'datetime' },
-        series: envSeries
+    function ensureEnvChart() {
+        if (envChart) return envChart;
+        envChart = Highcharts.chart('envChart', {
+            chart: { type: 'spline' },
+            title: { text: 'Realtime Clouds, Light, SQM' },
+            xAxis: { type: 'datetime' },
+            series: envSeriesLabels.map((name, idx) => ({ name, data: envSeriesData[idx].slice() }))
+        });
+        updateChartsTheme();
+        return envChart;
+    }
+
+    const chartTabs = document.querySelectorAll('.chart-tab');
+    const safeChartContainer = document.getElementById('safeChart');
+    const envChartContainer = document.getElementById('envChart');
+    let activeChartTab = null;
+    const activeTabClasses = ['bg-white', 'text-indigo-700', 'shadow', 'dark:bg-gray-800', 'dark:text-indigo-100'];
+    const inactiveTabClasses = ['text-indigo-500', 'hover:text-indigo-700', 'dark:text-indigo-200', 'dark:hover:text-indigo-100'];
+
+    function applyTabState(tab) {
+        chartTabs.forEach(btn => {
+            const isActive = btn.dataset.chartTab === tab;
+            btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+            activeTabClasses.forEach(cls => btn.classList.toggle(cls, isActive));
+            inactiveTabClasses.forEach(cls => btn.classList.toggle(cls, !isActive));
+        });
+    }
+
+    function showSafeChart() {
+        envChartContainer.classList.add('hidden');
+        safeChartContainer.classList.remove('hidden');
+        requestAnimationFrame(() => safeChart.reflow());
+    }
+
+    function showEnvChart() {
+        safeChartContainer.classList.add('hidden');
+        envChartContainer.classList.remove('hidden');
+        const chart = ensureEnvChart();
+        requestAnimationFrame(() => chart && chart.reflow());
+    }
+
+    function setActiveTab(tab) {
+        if (!tab) return;
+        if (tab !== activeChartTab) {
+            activeChartTab = tab;
+            applyTabState(tab);
+        }
+        if (tab === 'safe') {
+            showSafeChart();
+        } else {
+            showEnvChart();
+        }
+    }
+
+    chartTabs.forEach(btn => {
+        btn.addEventListener('click', () => setActiveTab(btn.dataset.chartTab));
     });
 
-    document.querySelectorAll('.fullscreen-btn').forEach(btn => {
+    document.querySelectorAll('[data-chart-link]').forEach(link => {
+        link.addEventListener('click', () => setActiveTab(link.dataset.chartLink));
+    });
+
+    setActiveTab('safe');
+
+    const fullscreenButtons = document.querySelectorAll('.fullscreen-toggle');
+
+    fullscreenButtons.forEach(btn => {
         btn.addEventListener('click', () => {
             const target = document.getElementById(btn.dataset.target);
+            if (!target) return;
             if (document.fullscreenElement === target) {
-                document.exitFullscreen();
-            } else {
+                if (document.exitFullscreen) document.exitFullscreen();
+            } else if (target.requestFullscreen) {
                 target.requestFullscreen();
             }
         });
     });
 
-    document.addEventListener('fullscreenchange', () => {
-        document.querySelectorAll('.fullscreen-btn').forEach(btn => {
+    function syncFullscreenButtons() {
+        fullscreenButtons.forEach(btn => {
             const target = document.getElementById(btn.dataset.target);
-            btn.textContent = document.fullscreenElement === target ? 'Exit Full Screen' : 'Full Screen';
+            const isActive = target && document.fullscreenElement === target;
+            btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+            btn.classList.toggle('ring-4', isActive);
+            btn.classList.toggle('ring-indigo-200', isActive);
+            btn.classList.toggle('dark:ring-indigo-400', isActive);
+            btn.classList.toggle('shadow-lg', isActive);
         });
-        Highcharts.charts.forEach(c => { if (c) c.reflow(); });
-    });
+        requestAnimationFrame(() => {
+            safeChart.reflow();
+            if (envChart) envChart.reflow();
+        });
+    }
+
+    document.addEventListener('fullscreenchange', syncFullscreenButtons);
+    syncFullscreenButtons();
 
     const modeToggle = document.getElementById('modeToggle');
 
@@ -380,14 +484,16 @@ const envSeries = envTopicNames.map(name => {
         const textColor = isDark ? '#F9FAFB' : '#1F2937';
         const bgColor = isDark ? '#1f2937' : '#FFFFFF';
         const gridColor = isDark ? '#374151' : '#e5e7eb';
-        [safeChart, envChart].forEach(c => c.update({
+        const charts = [safeChart];
+        if (envChart) charts.push(envChart);
+        charts.forEach(c => c.update({
             chart: { backgroundColor: bgColor },
             title: { style: { color: textColor } },
             xAxis: { labels: { style: { color: textColor } }, gridLineColor: gridColor, lineColor: textColor },
             yAxis: { labels: { style: { color: textColor } }, title: { style: { color: textColor } }, gridLineColor: gridColor, lineColor: textColor },
             legend: { itemStyle: { color: textColor } }
         }, false));
-        [safeChart, envChart].forEach(c => c.redraw());
+        charts.forEach(c => c.redraw());
     }
 
     function updateModeIcon() {
