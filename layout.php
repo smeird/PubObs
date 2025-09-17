@@ -26,7 +26,7 @@ function layout_start(string $pageTitle, string $heroTitle, string $heroSubtitle
             <header class="space-y-6 mb-10">
                 <div class="flex flex-wrap items-center justify-between gap-4 bg-white/70 dark:bg-gray-800/70 backdrop-blur p-5 rounded-2xl shadow">
                     <a href="index.php" class="flex items-center gap-3 text-indigo-600 dark:text-indigo-300 font-semibold hover:text-indigo-700 dark:hover:text-indigo-100 transition">
-                        <img src="favicon.svg" alt="" class="w-10 h-10">
+                        <img src="logo.svg" alt="Observatory telescope logo" class="w-10 h-10">
                         <span class="text-lg">Wheathampstead AstroPhotography Conditions</span>
                     </a>
                     <div class="flex items-center gap-3">

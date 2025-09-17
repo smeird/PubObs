@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-labelledby="logoTitle logoDesc">
+  <title id="logoTitle">Wheathampstead observatory telescope logo</title>
+  <desc id="logoDesc">Circular logo showing a telescope on a tripod aimed at a glowing sky with stars.</desc>
+  <defs>
+    <radialGradient id="halo" cx="55%" cy="32%" r="60%">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.75" />
+      <stop offset="100%" stop-color="#38bdf8" stop-opacity="0" />
+    </radialGradient>
+    <linearGradient id="night" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#1d4ed8" />
+    </linearGradient>
+    <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1e293b" />
+      <stop offset="100%" stop-color="#0f172a" />
+    </linearGradient>
+  </defs>
+  <circle cx="80" cy="80" r="74" fill="url(#night)" />
+  <circle cx="92" cy="46" r="54" fill="url(#halo)" />
+  <path d="M20 112h120v18a74 74 0 0 1-120 0z" fill="url(#ground)" opacity="0.9" />
+  <g fill="#f8fafc" opacity="0.85">
+    <circle cx="52" cy="34" r="3" />
+    <circle cx="116" cy="28" r="2.6" />
+    <circle cx="104" cy="72" r="2.4" />
+    <circle cx="72" cy="20" r="2.2" />
+    <path d="M127 56l2-5l5-2l-2 5z" />
+  </g>
+  <g transform="translate(28 42)">
+    <path fill="#cbd5f5" d="M40 60a6 6 0 1 1-12 0a6 6 0 0 1 12 0Z" />
+    <path fill="#f8fafc" d="M5 15l68 18l-6 20L0 32z" transform="rotate(-12 44 35)" />
+    <path fill="#38bdf8" d="M6 18.5a12 12 0 1 1 15.6 8.5z" />
+    <path fill="#e2e8f0" d="M38.5 65l12.5 36h-12L26 65z" />
+    <path fill="#e2e8f0" d="m54 65l24 36h-13.6l-7.4-22.2z" />
+    <path fill="#e2e8f0" d="m24.8 65-18 36H-4l15.8-36z" />
+    <path fill="#f8fafc" d="M-2 52h56l5 15H-8z" />
+  </g>
+  <circle cx="80" cy="80" r="74" fill="none" stroke="#38bdf8" stroke-width="4" opacity="0.35" />
+</svg>
