@@ -9,7 +9,7 @@
     "sqm": { "topic": "Observatory/sqm", "green": 12, "condition": "above","unit": "mag" },
     "humidity": { "topic": "Observatory/hum", "green": 90, "condition": "below","unit": "%" },
     "dewpoint": { "topic": "Observatory/dewp", "unit": "°C" },
-    "Wind Speed":  { "topic": "weather/windSpeed_kph" , "unit": "kph" }
+    "Wind Speed":  { "topic": "weather/windSpeed_kph" ,"green": 5 ,"condition": "below" "unit": "kph" }
     }
 }
 
