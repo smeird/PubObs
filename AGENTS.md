@@ -48,5 +48,3 @@ Design decisions added after this file should be appended here for future refere
 39. Historical queries accept optional `start` or `end` parameters to filter results without requiring both.
 40. Historical pages fetch data asynchronously via a JSON endpoint to handle large result sets without exhausting server memory.
 
-41. Accent font weight preferences are stored in the MySQL `site_settings` table and controlled via the index page header.
-

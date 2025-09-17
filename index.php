@@ -3,8 +3,6 @@ $config = json_decode(file_get_contents('mqtt_config.json'), true);
 $host = $config['host'] ?? 'localhost';
 $topics = $config['topics'] ?? [];
 
-$accentFontWeight = '600';
-
 $dbHost = getenv('DB_HOST');
 $dbName = getenv('DB_NAME');
 $dbUser = getenv('DB_USER');
@@ -13,14 +11,6 @@ $dbPass = getenv('DB_PASS');
 $safeData = [];
 try {
     $pdo = new PDO("mysql:host=$dbHost;dbname=$dbName;charset=utf8", $dbUser, $dbPass, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
-
-    $pdo->exec("CREATE TABLE IF NOT EXISTS site_settings (name VARCHAR(191) PRIMARY KEY, value TEXT NOT NULL)");
-    $settingStmt = $pdo->prepare("SELECT value FROM site_settings WHERE name = :name");
-    $settingStmt->execute(['name' => 'accent_font_weight']);
-    $setting = $settingStmt->fetchColumn();
-    if (is_string($setting) && preg_match('/^(100|200|300|400|500|600|700|800|900)$/', $setting)) {
-        $accentFontWeight = $setting;
-    }
 
     // Build map for last 30 days initialised to 0 hours
     $start = new DateTime('today -29 days');
@@ -64,7 +54,6 @@ try {
     }
 } catch (Exception $e) {
     $safeData = [];
-    $accentFontWeight = '600';
 }
 ?>
 <!DOCTYPE html>
@@ -83,15 +72,6 @@ try {
     </script>
     <!-- Highcharts -->
     <script src="https://code.highcharts.com/highcharts.js"></script>
-    <style>
-        :root {
-            --accent-font-weight: <?= htmlspecialchars($accentFontWeight, ENT_QUOTES) ?>;
-        }
-        .accent-value,
-        .accent-unit {
-            font-weight: var(--accent-font-weight, 600);
-        }
-    </style>
 </head>
 <body class="min-h-screen bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-gray-800 dark:to-gray-900 text-gray-800 dark:text-gray-100 font-sans">
     <div class="max-w-6xl mx-auto p-6">
@@ -101,22 +81,10 @@ try {
                 <span class="hidden sm:inline">Wheathampstead AstroPhotography Conditions</span>
                 <span class="sm:hidden">WAPC</span>
             </h1>
-            <div class="flex items-center space-x-3">
+            <div class="flex items-center space-x-2">
                 <span id="mqttStatus" class="text-sm text-yellow-600">Connecting...</span>
 
                 <a href="clear.php" class="text-indigo-600 dark:text-indigo-400 hover:underline">Clear by Month</a>
-
-                <div class="flex flex-col items-start">
-                    <div class="flex items-center space-x-1">
-                        <label for="accentWeightSelect" class="text-sm text-gray-700 dark:text-gray-300 hidden sm:block">Accent Weight</label>
-                        <select id="accentWeightSelect" aria-label="Accent font weight" class="border border-indigo-200 dark:border-gray-700 rounded px-2 py-1 bg-white/80 dark:bg-gray-700/80 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                            <?php foreach ([100,200,300,400,500,600,700,800,900] as $weightOption): ?>
-                            <option value="<?= $weightOption ?>" <?= $weightOption === (int)$accentFontWeight ? 'selected' : '' ?>><?= $weightOption ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <span id="accentSaveStatus" class="text-xs hidden"></span>
-                </div>
 
                 <button id="modeToggle" class="p-2 rounded bg-indigo-500 text-white hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700" aria-label="Switch to Dark Mode">🌙</button>
 
@@ -143,7 +111,6 @@ try {
     const topics = <?php echo json_encode($topics); ?>;
     const host = <?php echo json_encode($host); ?>;
     const safeData = <?php echo json_encode($safeData); ?>;
-    let currentAccentFontWeight = <?php echo json_encode($accentFontWeight); ?>;
     const port = 8083; // default WebSocket port for MQTT
 const brokerHost = (host === 'localhost' || host === '127.0.0.1') ? window.location.hostname : host;
 const topicEntries = Object.entries(topics);
@@ -183,7 +150,7 @@ const envSeries = envTopicNames.map(name => {
         card.id = 'card-' + sanitize(name);
         card.className = 'bg-gray-100 dark:bg-gray-800 p-4 rounded shadow h-32 flex border-4 border-transparent';
         const icon = icons[name] || '📟';
-        const unitMarkup = cfg.unit ? `<span class="text-2xl ml-1 accent-unit">${cfg.unit}</span>` : '';
+        const unitMarkup = cfg.unit ? `<span class="text-2xl ml-1">${cfg.unit}</span>` : '';
         card.innerHTML = `
             <div class="flex flex-col justify-between w-1/2">
                 <h2 class="text-xl font-semibold flex items-center"><span class="mr-2">${icon}</span>${name}</h2>
@@ -197,7 +164,7 @@ const envSeries = envTopicNames.map(name => {
                 </div>
             </div>
             <div class="w-1/2 flex items-center justify-center">
-                <p class="text-right text-6xl leading-none flex items-baseline justify-end"><span id="${id}" class="accent-value">--</span>${unitMarkup}</p>
+                <p class="text-right text-6xl leading-none flex items-baseline justify-end"><span id="${id}">--</span>${unitMarkup}</p>
             </div>
 
         `;
@@ -322,75 +289,6 @@ const envSeries = envTopicNames.map(name => {
         xAxis: { type: 'datetime' },
         series: envSeries
     });
-
-    const accentWeightSelect = document.getElementById('accentWeightSelect');
-    const accentSaveStatus = document.getElementById('accentSaveStatus');
-
-    function applyAccentFontWeight(weight) {
-        currentAccentFontWeight = weight;
-        document.documentElement.style.setProperty('--accent-font-weight', weight);
-    }
-
-    function displayAccentStatus(message, variant = 'info') {
-        if (!accentSaveStatus) return;
-        accentSaveStatus.textContent = message;
-        accentSaveStatus.classList.remove('hidden', 'text-gray-500', 'dark:text-gray-300', 'text-green-600', 'dark:text-green-400', 'text-red-500', 'dark:text-red-400');
-        const classes = variant === 'success'
-            ? ['text-green-600', 'dark:text-green-400']
-            : variant === 'error'
-                ? ['text-red-500', 'dark:text-red-400']
-                : ['text-gray-500', 'dark:text-gray-300'];
-        accentSaveStatus.classList.add(...classes);
-        if (displayAccentStatus.timeout) {
-            clearTimeout(displayAccentStatus.timeout);
-            displayAccentStatus.timeout = null;
-        }
-        if (variant !== 'info') {
-            displayAccentStatus.timeout = setTimeout(() => {
-                accentSaveStatus.classList.add('hidden');
-                displayAccentStatus.timeout = null;
-            }, 2500);
-        }
-    }
-
-    displayAccentStatus.timeout = null;
-
-    applyAccentFontWeight(currentAccentFontWeight);
-
-    if (accentWeightSelect) {
-        accentWeightSelect.value = currentAccentFontWeight;
-        accentWeightSelect.addEventListener('change', () => {
-            const newWeight = accentWeightSelect.value;
-            const previousWeight = currentAccentFontWeight;
-            applyAccentFontWeight(newWeight);
-            displayAccentStatus('Saving...', 'info');
-            fetch('settings.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ accent_font_weight: newWeight })
-            })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Request failed');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (!data.success) {
-                        throw new Error('Save failed');
-                    }
-                    currentAccentFontWeight = newWeight;
-                    displayAccentStatus('Saved', 'success');
-                })
-                .catch(error => {
-                    console.error('Failed to update accent font weight', error);
-                    applyAccentFontWeight(previousWeight);
-                    currentAccentFontWeight = previousWeight;
-                    accentWeightSelect.value = previousWeight;
-                    displayAccentStatus('Save failed', 'error');
-                });
-        });
-    }
 
     document.querySelectorAll('.fullscreen-btn').forEach(btn => {
         btn.addEventListener('click', () => {
