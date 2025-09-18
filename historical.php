@@ -168,7 +168,15 @@ const histChart = Highcharts.stockChart('histChart', {
     chart: {
         type: 'line',
         backgroundColor: 'transparent',
-        style: { fontFamily: 'inherit' }
+        style: { fontFamily: 'inherit' },
+        zooming: {
+            type: 'x',
+            mouseWheel: true
+        },
+        zoomType: 'x',
+        resetZoomButton: {
+            theme: createButtonTheme(document.documentElement.classList.contains('dark'))
+        }
     },
     title: { text: null },
     legend: { enabled: false },
@@ -229,6 +237,11 @@ function updateChartTheme() {
     const textColor = isDark ? '#F9FAFB' : '#1F2937';
     const gridColor = isDark ? '#374151' : '#E5E7EB';
     histChart.update({
+        chart: {
+            resetZoomButton: {
+                theme: createButtonTheme(isDark)
+            }
+        },
         xAxis: {
             labels: { style: { color: textColor } },
             gridLineColor: gridColor,

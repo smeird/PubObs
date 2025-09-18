@@ -392,7 +392,14 @@ let envChart = null;
     const safeCategories = safeData.map(r => r.day);
     const safeHours = safeData.map(r => parseFloat(r.hours));
     const safeChart = Highcharts.chart('safeChart', {
-        chart: { type: 'column' },
+        chart: {
+            type: 'column',
+            zooming: {
+                type: 'x',
+                mouseWheel: true
+            },
+            zoomType: 'x'
+        },
         title: { text: 'Observable Hours (Last 30 Days)' },
         xAxis: { categories: safeCategories },
         yAxis: { title: { text: 'Hours' } },
@@ -402,7 +409,14 @@ let envChart = null;
     function ensureEnvChart() {
         if (envChart) return envChart;
         envChart = Highcharts.chart('envChart', {
-            chart: { type: 'spline' },
+            chart: {
+                type: 'spline',
+                zooming: {
+                    type: 'x',
+                    mouseWheel: true
+                },
+                zoomType: 'x'
+            },
             title: { text: 'Realtime Clouds, Light, SQM' },
             xAxis: { type: 'datetime' },
             series: envSeriesLabels.map((name, idx) => ({ name, data: envSeriesData[idx].slice() }))
@@ -505,14 +519,27 @@ let envChart = null;
         const gridColor = isDark ? '#374151' : '#e5e7eb';
         const charts = [safeChart];
         if (envChart) charts.push(envChart);
-        charts.forEach(c => c.update({
-            chart: { backgroundColor: bgColor },
-            title: { style: { color: textColor } },
-            xAxis: { labels: { style: { color: textColor } }, gridLineColor: gridColor, lineColor: textColor },
-            yAxis: { labels: { style: { color: textColor } }, title: { style: { color: textColor } }, gridLineColor: gridColor, lineColor: textColor },
-            legend: { itemStyle: { color: textColor } }
-        }, false));
-        charts.forEach(c => c.redraw());
+        charts.forEach(c => {
+            const resetZoomTheme = {
+                fill: isDark ? '#1F2937' : '#EEF2FF',
+                stroke: 'transparent',
+                style: {
+                    color: textColor,
+                    fontWeight: '600'
+                }
+            };
+            c.update({
+                chart: {
+                    backgroundColor: bgColor,
+                    resetZoomButton: { theme: resetZoomTheme }
+                },
+                title: { style: { color: textColor } },
+                xAxis: { labels: { style: { color: textColor } }, gridLineColor: gridColor, lineColor: textColor },
+                yAxis: { labels: { style: { color: textColor } }, title: { style: { color: textColor } }, gridLineColor: gridColor, lineColor: textColor },
+                legend: { itemStyle: { color: textColor } }
+            }, false);
+            c.redraw();
+        });
     }
 
     function updateModeIcon() {

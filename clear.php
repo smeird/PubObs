@@ -113,11 +113,30 @@ const monthNames = {$monthNamesJson};
 const monthData = {$monthDataJson};
 const chartYear = {$yearJson};
 
+function createResetZoomTheme(isDark) {
+    return {
+        fill: isDark ? '#1F2937' : '#EEF2FF',
+        stroke: 'transparent',
+        style: {
+            color: isDark ? '#E5E7EB' : '#312E81',
+            fontWeight: '600'
+        }
+    };
+}
+
 const chart = Highcharts.chart('monthChart', {
     chart: {
         type: 'column',
         backgroundColor: 'transparent',
-        style: { fontFamily: 'inherit' }
+        style: { fontFamily: 'inherit' },
+        zooming: {
+            type: 'x',
+            mouseWheel: true
+        },
+        zoomType: 'x',
+        resetZoomButton: {
+            theme: createResetZoomTheme(document.documentElement.classList.contains('dark'))
+        }
     },
     title: { text: null },
     credits: { enabled: false },
@@ -153,6 +172,11 @@ function updateChartTheme() {
     const textColor = isDark ? '#F9FAFB' : '#1F2937';
     const gridColor = isDark ? '#374151' : '#E5E7EB';
     chart.update({
+        chart: {
+            resetZoomButton: {
+                theme: createResetZoomTheme(isDark)
+            }
+        },
         xAxis: {
             labels: { style: { color: textColor } },
             lineColor: 'transparent',
