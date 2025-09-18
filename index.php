@@ -9,8 +9,7 @@ $dbUser = getenv('DB_USER');
 $dbPass = getenv('DB_PASS');
 
 $safeData = [];
-$todaySafeHours = null;
-$today = date('Y-m-d');
+$last7SafeHours = null;
 try {
     $pdo = new PDO("mysql:host=$dbHost;dbname=$dbName;charset=utf8", $dbUser, $dbPass, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
 
@@ -51,18 +50,27 @@ try {
         }
     }
 
+    $sevenDayWindowStart = new DateTime('today -6 days');
+    $sevenDayTotal = 0.0;
+    for ($i = 0; $i < 7; $i++) {
+        $d = clone $sevenDayWindowStart;
+        $d->modify("+{$i} day");
+        $key = $d->format('Y-m-d');
+        if (isset($dayMap[$key])) {
+            $sevenDayTotal += $dayMap[$key];
+        }
+    }
+    $last7SafeHours = round($sevenDayTotal, 2);
+
     foreach ($dayMap as $day => $hours) {
         $rounded = round($hours, 2);
         $safeData[] = ['day' => $day, 'hours' => $rounded];
-        if ($day === $today) {
-            $todaySafeHours = $rounded;
-        }
     }
 } catch (Exception $e) {
     $safeData = [];
-    $todaySafeHours = null;
+    $last7SafeHours = null;
 }
-$todaySafeHoursDisplay = $todaySafeHours !== null ? number_format($todaySafeHours, 2) : '--';
+$last7SafeHoursDisplay = $last7SafeHours !== null ? number_format($last7SafeHours, 2) : '--';
 ?>
 <!DOCTYPE html>
 <html class="h-full" lang="en">
@@ -106,14 +114,14 @@ $todaySafeHoursDisplay = $todaySafeHours !== null ? number_format($todaySafeHour
                         </div>
                         <div class="flex flex-col gap-4 sm:flex-row sm:items-stretch sm:justify-end">
                             <div class="rounded-2xl bg-white/15 px-6 py-5 text-white shadow-lg ring-1 ring-white/40 backdrop-blur">
-                                <p class="text-xs font-semibold uppercase tracking-wider text-white/70">Today's safe observing time</p>
+                                <p class="text-xs font-semibold uppercase tracking-wider text-white/70">Safe observing time · last 7 days</p>
                                 <p class="mt-2 text-4xl font-bold sm:text-5xl">
-                                    <?= htmlspecialchars($todaySafeHoursDisplay, ENT_QUOTES, 'UTF-8'); ?>
-                                    <?php if ($todaySafeHours !== null): ?>
+                                    <?= htmlspecialchars($last7SafeHoursDisplay, ENT_QUOTES, 'UTF-8'); ?>
+                                    <?php if ($last7SafeHours !== null): ?>
                                         <span class="ml-1 text-lg font-semibold">hrs</span>
                                     <?php endif; ?>
                                 </p>
-                                <p class="mt-1 text-xs text-white/70">Automatically updated from observatory sensors.</p>
+                                <p class="mt-1 text-xs text-white/70">Total clear-sky hours recorded over the previous seven days.</p>
                             </div>
                             <nav aria-label="Quick links" class="flex flex-col gap-3 sm:items-end">
                                 <a href="clear.php" class="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70">Clear by Month</a>
