@@ -97,11 +97,11 @@ $last7SafeHoursDisplay = $last7SafeHours !== null ? number_format($last7SafeHour
                 <div class="grid gap-10 lg:grid-cols-2 lg:items-center">
                     <div class="flex flex-col gap-4">
                         <div class="flex items-center gap-3">
-                            <img src="favicon.svg" alt="" class="h-12 w-12 rounded-full bg-white/20 p-2 shadow-lg" />
                             <div>
                                 <p class="text-xs uppercase tracking-[0.3em] text-white/80">Wheathampstead Observatory</p>
                                 <h1 class="text-3xl font-semibold sm:text-4xl">Wheathampstead AstroPhotography Conditions</h1>
                             </div>
+                            <img src="favicon.svg" alt="" class="h-12 w-12 rounded-full bg-white/20 p-2 shadow-lg" />
                         </div>
                         <p class="max-w-xl text-base text-white/90 sm:text-lg">Live observatory telemetry, safety insights, and the latest sky conditions to plan your next observing session.</p>
                     </div>
