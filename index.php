@@ -91,7 +91,7 @@ $last7SafeHoursDisplay = $last7SafeHours !== null ? number_format($last7SafeHour
 </head>
 <body class="min-h-screen bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-gray-800 dark:to-gray-900 text-gray-800 dark:text-gray-100 font-sans">
     <div class="max-w-6xl mx-auto p-6">
-        <section class="relative mb-8 overflow-hidden rounded-3xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white shadow-xl dark:from-indigo-600 dark:via-purple-700 dark:to-pink-700">
+        <section id="heroCard" class="relative mb-8 overflow-hidden rounded-3xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white shadow-xl dark:from-indigo-600 dark:via-purple-700 dark:to-pink-700">
             <div class="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.7),transparent_60%)]"></div>
             <div class="relative px-6 py-10 sm:px-10">
                 <div class="grid gap-10 lg:grid-cols-2 lg:items-center">
@@ -193,6 +193,39 @@ const envSeriesLabels = envTopicNames.map(name => {
 });
 const envSeriesData = envTopicNames.map(() => []);
 let envChart = null;
+
+    const heroCard = document.getElementById('heroCard');
+    const heroDefaultGradientClasses = ['from-indigo-500', 'via-purple-500', 'to-pink-500', 'dark:from-indigo-600', 'dark:via-purple-700', 'dark:to-pink-700'];
+    const heroSafeGradientClasses = ['from-emerald-500', 'via-emerald-600', 'to-emerald-700', 'dark:from-emerald-600', 'dark:via-emerald-700', 'dark:to-emerald-800'];
+    let heroState = 'default';
+
+    function setHeroGradient(state) {
+        if (!heroCard || state === heroState) return;
+        if (state === 'safe') {
+            heroCard.classList.remove(...heroDefaultGradientClasses);
+            heroCard.classList.add(...heroSafeGradientClasses);
+        } else {
+            heroCard.classList.remove(...heroSafeGradientClasses);
+            heroCard.classList.add(...heroDefaultGradientClasses);
+        }
+        heroState = state;
+    }
+
+    const thresholdedSensors = topicEntries.filter(([, cfg]) => {
+        const threshold = parseFloat(cfg.green);
+        const condition = typeof cfg.condition === 'string' ? cfg.condition.toLowerCase() : null;
+        const hasThreshold = Number.isFinite(threshold);
+        return hasThreshold && (condition === 'above' || condition === 'below');
+    });
+    const sensorStatus = new Map(thresholdedSensors.map(([name]) => [name, 'unknown']));
+
+    function updateHeroState() {
+        if (!heroCard || thresholdedSensors.length === 0) return;
+        const allFavorable = thresholdedSensors.every(([name]) => sensorStatus.get(name) === 'favorable');
+        setHeroGradient(allFavorable ? 'safe' : 'default');
+    }
+
+    updateHeroState();
 
     const cardsContainer = document.getElementById('cards');
     cardsContainer.innerHTML = '';
@@ -329,13 +362,17 @@ let envChart = null;
             const el = document.getElementById(id);
             if (el) { el.textContent = displayValue; }
             const statusEl = document.getElementById('status-' + sanitize(name));
-            if (statusEl) {
-                const threshold = parseFloat(cfg.green);
-                const hasThreshold = Number.isFinite(threshold);
-                if (hasNumericValue && hasThreshold && cfg.condition) {
-                    let match = false;
-                    if (cfg.condition === 'above') match = numericValue > threshold;
-                    else if (cfg.condition === 'below') match = numericValue < threshold;
+            const condition = typeof cfg.condition === 'string' ? cfg.condition.toLowerCase() : null;
+            const threshold = parseFloat(cfg.green);
+            const hasThreshold = Number.isFinite(threshold) && (condition === 'above' || condition === 'below');
+            const isTrackedSensor = sensorStatus.has(name);
+
+            if (hasNumericValue && hasThreshold) {
+                let match = false;
+                if (condition === 'above') match = numericValue > threshold;
+                else if (condition === 'below') match = numericValue < threshold;
+
+                if (statusEl) {
                     if (match) {
                         statusEl.textContent = 'Favorable';
                         statusEl.className = `${statusBaseClasses} bg-emerald-100/90 text-emerald-700 ring-emerald-300/60`;
@@ -343,10 +380,23 @@ let envChart = null;
                         statusEl.textContent = 'Warning';
                         statusEl.className = `${statusBaseClasses} bg-rose-100/90 text-rose-700 ring-rose-300/60`;
                     }
-                } else {
+                }
+
+                if (isTrackedSensor) {
+                    sensorStatus.set(name, match ? 'favorable' : 'warning');
+                }
+            } else {
+                if (statusEl) {
                     statusEl.textContent = 'Monitoring';
                     statusEl.className = `${statusBaseClasses} bg-slate-100/80 text-slate-600 ring-slate-200/70`;
                 }
+                if (isTrackedSensor) {
+                    sensorStatus.set(name, 'unknown');
+                }
+            }
+
+            if (isTrackedSensor) {
+                updateHeroState();
             }
         }
         const envIndex = envSeriesMap[topic];
