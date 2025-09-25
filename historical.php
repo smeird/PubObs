@@ -15,7 +15,8 @@ $columnMap = [
     'wind' => 'wind',
     'gust' => 'gust',
     'switch' => 'switch',
-    'sqm' => 'light'
+    'sqm' => 'light',
+    'Wind Speed' => 'wind'
 ];
 
 $column = $columnMap[$key] ?? null;
@@ -30,6 +31,32 @@ $dbUser = getenv('DB_USER');
 $dbPass = getenv('DB_PASS');
 $format = $_GET['format'] ?? '';
 
+function normalizeDateParam(?string $value, bool $isEnd = false): ?string
+{
+    if ($value === null || $value === '') {
+        return null;
+    }
+
+    $trimmed = trim($value);
+
+    if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $trimmed)) {
+        return $trimmed . ($isEnd ? ' 23:59:59' : ' 00:00:00');
+    }
+
+    $normalized = str_replace('T', ' ', $trimmed);
+    $normalized = preg_replace('/Z$/', '', $normalized);
+
+    if (preg_match('/^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}$/', $normalized)) {
+        return $normalized . ':00';
+    }
+
+    if (preg_match('/^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}$/', $normalized)) {
+        return $normalized;
+    }
+
+    return $trimmed . ($isEnd ? ' 23:59:59' : ' 00:00:00');
+}
+
 // Determine requested date range; support optional start or end
 $endParam   = $_GET['end']   ?? null;
 $startParam = $_GET['start'] ?? null;
@@ -40,13 +67,16 @@ if ($format === 'json') {
 
         $conditions = [];
         $params = [];
-        if ($startParam) {
+        $normalizedStart = normalizeDateParam($startParam, false);
+        $normalizedEnd = normalizeDateParam($endParam, true);
+
+        if ($normalizedStart) {
             $conditions[] = 'dateTime >= :start';
-            $params['start'] = $startParam . ' 00:00:00';
+            $params['start'] = $normalizedStart;
         }
-        if ($endParam) {
+        if ($normalizedEnd) {
             $conditions[] = 'dateTime <= :end';
-            $params['end'] = $endParam . ' 23:59:59';
+            $params['end'] = $normalizedEnd;
         }
 
         $query = "SELECT dateTime AS timestamp, `$column` AS value FROM obs_weather";
