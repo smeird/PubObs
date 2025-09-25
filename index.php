@@ -288,7 +288,9 @@ let envChart = null;
         const textColor = isDark ? '#F9FAFB' : '#1F2937';
         const tooltipBg = isDark ? '#111827' : '#EEF2FF';
         chart.update({
-            chart: { backgroundColor: 'transparent' },
+
+            chart: { backgroundColor: 'transparent', plotBackgroundColor: 'transparent' },
+
             tooltip: {
                 backgroundColor: tooltipBg,
                 style: { color: textColor },
@@ -319,6 +321,9 @@ let envChart = null;
             chart: {
                 type: 'areaspline',
                 backgroundColor: 'transparent',
+
+                plotBackgroundColor: 'transparent',
+
                 animation: false,
                 spacing: [6, 6, 6, 6]
             },
@@ -604,6 +609,8 @@ let envChart = null;
     const safeChart = Highcharts.chart('safeChart', {
         chart: {
             type: 'column',
+            backgroundColor: 'transparent',
+            plotBackgroundColor: 'transparent',
             zooming: {
                 type: 'x',
                 mouseWheel: true
@@ -621,6 +628,8 @@ let envChart = null;
         envChart = Highcharts.chart('envChart', {
             chart: {
                 type: 'spline',
+                backgroundColor: 'transparent',
+                plotBackgroundColor: 'transparent',
                 zooming: {
                     type: 'x',
                     mouseWheel: true
@@ -725,7 +734,6 @@ let envChart = null;
     function updateChartsTheme() {
         const isDark = document.documentElement.classList.contains('dark');
         const textColor = isDark ? '#F9FAFB' : '#1F2937';
-        const bgColor = isDark ? '#1f2937' : '#FFFFFF';
         const gridColor = isDark ? '#374151' : '#e5e7eb';
         const charts = [safeChart];
         if (envChart) charts.push(envChart);
@@ -740,7 +748,8 @@ let envChart = null;
             };
             c.update({
                 chart: {
-                    backgroundColor: bgColor,
+                    backgroundColor: 'transparent',
+                    plotBackgroundColor: 'transparent',
                     resetZoomButton: { theme: resetZoomTheme }
                 },
                 title: { style: { color: textColor } },
