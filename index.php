@@ -250,6 +250,158 @@ let envChart = null;
     ];
     const statusBaseClasses = 'inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide shadow-sm ring-1 ring-inset transition-colors backdrop-blur-sm';
 
+    const miniChartData = {};
+    const miniCharts = {};
+    const THREE_HOURS_MS = 3 * 60 * 60 * 1000;
+
+    function formatDateTimeForQuery(date) {
+        return date.toISOString().slice(0, 19).replace('T', ' ');
+    }
+
+    function parseTimestamp(value) {
+        if (!value) return null;
+        const normalized = value.replace(' ', 'T');
+        const time = Date.parse(normalized);
+        return Number.isNaN(time) ? null : time;
+    }
+
+    function getMiniChartPalette() {
+        const isDark = document.documentElement.classList.contains('dark');
+        if (isDark) {
+            return {
+                line: 'rgba(165, 180, 252, 0.9)',
+                fillTop: 'rgba(129, 140, 248, 0.35)',
+                fillBottom: 'rgba(129, 140, 248, 0.05)'
+            };
+        }
+        return {
+            line: 'rgba(79, 70, 229, 0.9)',
+            fillTop: 'rgba(129, 140, 248, 0.25)',
+            fillBottom: 'rgba(99, 102, 241, 0.04)'
+        };
+    }
+
+    function applyMiniChartTheme(chart) {
+        if (!chart) return;
+        const palette = getMiniChartPalette();
+        const isDark = document.documentElement.classList.contains('dark');
+        const textColor = isDark ? '#F9FAFB' : '#1F2937';
+        const tooltipBg = isDark ? '#111827' : '#EEF2FF';
+        chart.update({
+            chart: { backgroundColor: 'transparent', plotBackgroundColor: 'transparent' },
+            tooltip: {
+                backgroundColor: tooltipBg,
+                style: { color: textColor },
+                borderColor: 'transparent'
+            }
+        }, false);
+        if (chart.series[0]) {
+            chart.series[0].update({
+                color: palette.line,
+                fillColor: {
+                    linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
+                    stops: [
+                        [0, palette.fillTop],
+                        [1, palette.fillBottom]
+                    ]
+                }
+            }, false);
+        }
+        chart.redraw();
+    }
+
+    function renderMiniChart(name, cfg) {
+        const sanitized = sanitize(name);
+        const container = document.getElementById('chart-' + sanitized);
+        if (!container) return;
+        const data = (miniChartData[name] || []).slice();
+        miniCharts[name] = Highcharts.chart(container, {
+            chart: {
+                type: 'areaspline',
+                backgroundColor: 'transparent',
+                plotBackgroundColor: 'transparent',
+                animation: false,
+                spacing: [6, 6, 6, 6]
+            },
+            title: { text: null },
+            credits: { enabled: false },
+            legend: { enabled: false },
+            xAxis: {
+                type: 'datetime',
+                labels: { enabled: false },
+                tickLength: 0,
+                lineWidth: 0
+            },
+            yAxis: {
+                title: { text: null },
+                labels: { enabled: false },
+                gridLineWidth: 0
+            },
+            tooltip: {
+                valueSuffix: cfg.unit ? ` ${cfg.unit}` : '',
+                xDateFormat: '%H:%M'
+            },
+            plotOptions: {
+                areaspline: {
+                    lineWidth: 1.5,
+                    marker: { enabled: false },
+                    fillOpacity: 0.5
+                }
+            },
+            series: [{ data }]
+        });
+        applyMiniChartTheme(miniCharts[name]);
+    }
+
+    function refreshMiniChart(name) {
+        const chart = miniCharts[name];
+        if (!chart || !chart.series[0]) return;
+        chart.series[0].setData((miniChartData[name] || []).slice(), true, false, false);
+    }
+
+    function recordMiniChartPoint(name, numericValue) {
+        if (!Number.isFinite(numericValue)) return;
+        if (!miniChartData[name]) return;
+        const now = Date.now();
+        const points = miniChartData[name];
+        points.push([now, numericValue]);
+        const cutoff = now - THREE_HOURS_MS;
+        while (points.length && points[0][0] < cutoff) {
+            points.shift();
+        }
+        refreshMiniChart(name);
+    }
+
+    function initializeMiniChart(name, cfg) {
+        miniChartData[name] = [];
+        const now = new Date();
+        const start = new Date(now.getTime() - THREE_HOURS_MS);
+        const params = new URLSearchParams({
+            topic: name,
+            format: 'json',
+            start: formatDateTimeForQuery(start),
+            end: formatDateTimeForQuery(now)
+        });
+        fetch(`historical.php?${params.toString()}`)
+            .then(response => response.ok ? response.json() : [])
+            .then(rows => {
+                if (!Array.isArray(rows)) return rows;
+                const parsed = rows.map(row => {
+                    const ts = parseTimestamp(row.timestamp);
+                    const val = parseFloat(row.value);
+                    if (ts === null || Number.isNaN(val)) return null;
+                    return [ts, val];
+                }).filter(Boolean);
+                if (parsed.length) {
+                    miniChartData[name] = parsed;
+                }
+            })
+            .catch(() => {})
+            .finally(() => {
+                renderMiniChart(name, cfg);
+            });
+    }
+
     topicEntries.forEach(([name, cfg], idx) => {
         const id = 'value-' + sanitize(name);
         const card = document.createElement('div');
@@ -278,9 +430,14 @@ let envChart = null;
                     <span id="status-${sanitize(name)}" class="${statusBaseClasses} bg-slate-100/80 text-slate-600 ring-slate-200/70">Monitoring</span>
                 </div>
                 <div class="flex flex-col gap-4">
-                    <p class="text-4xl font-semibold leading-tight text-slate-900 dark:text-white sm:text-5xl">
-                        <span id="${id}">--</span>${unitMarkup}
-                    </p>
+                    <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                        <p class="text-4xl font-semibold leading-tight text-slate-900 dark:text-white sm:text-5xl">
+                            <span id="${id}">--</span>${unitMarkup}
+                        </p>
+                        <div class="relative h-24 w-full overflow-hidden rounded-2xl bg-white/50 shadow-inner ring-1 ring-white/40 dark:bg-slate-900/40 dark:ring-white/10 sm:h-28 sm:w-auto sm:min-w-[10rem]">
+                            <div id="chart-${sanitize(name)}" class="absolute inset-0"></div>
+                        </div>
+                    </div>
                     <div class="flex flex-wrap items-center gap-2">
                         <a href="historical.php?topic=${encodeURIComponent(name)}" class="inline-flex items-center gap-2 rounded-full bg-indigo-500/90 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-indigo-600/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-200 dark:bg-indigo-500/80 dark:hover:bg-indigo-400/90" aria-label="View History">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -293,6 +450,7 @@ let envChart = null;
             </div>
         `;
         cardsContainer.appendChild(card);
+        initializeMiniChart(name, cfg);
     });
 
 
@@ -398,6 +556,9 @@ let envChart = null;
             if (isTrackedSensor) {
                 updateHeroState();
             }
+            if (hasNumericValue) {
+                recordMiniChartPoint(name, numericValue);
+            }
         }
         const envIndex = envSeriesMap[topic];
         if (envIndex !== undefined && hasNumericValue) {
@@ -444,6 +605,8 @@ let envChart = null;
     const safeChart = Highcharts.chart('safeChart', {
         chart: {
             type: 'column',
+            backgroundColor: 'transparent',
+            plotBackgroundColor: 'transparent',
             zooming: {
                 type: 'x',
                 mouseWheel: true
@@ -461,6 +624,8 @@ let envChart = null;
         envChart = Highcharts.chart('envChart', {
             chart: {
                 type: 'spline',
+                backgroundColor: 'transparent',
+                plotBackgroundColor: 'transparent',
                 zooming: {
                     type: 'x',
                     mouseWheel: true
@@ -565,7 +730,6 @@ let envChart = null;
     function updateChartsTheme() {
         const isDark = document.documentElement.classList.contains('dark');
         const textColor = isDark ? '#F9FAFB' : '#1F2937';
-        const bgColor = isDark ? '#1f2937' : '#FFFFFF';
         const gridColor = isDark ? '#374151' : '#e5e7eb';
         const charts = [safeChart];
         if (envChart) charts.push(envChart);
@@ -580,7 +744,8 @@ let envChart = null;
             };
             c.update({
                 chart: {
-                    backgroundColor: bgColor,
+                    backgroundColor: 'transparent',
+                    plotBackgroundColor: 'transparent',
                     resetZoomButton: { theme: resetZoomTheme }
                 },
                 title: { style: { color: textColor } },
@@ -590,6 +755,7 @@ let envChart = null;
             }, false);
             c.redraw();
         });
+        Object.values(miniCharts).forEach(applyMiniChartTheme);
     }
 
     function updateModeIcon() {
