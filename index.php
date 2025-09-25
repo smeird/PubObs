@@ -288,7 +288,9 @@ let envChart = null;
         const textColor = isDark ? '#F9FAFB' : '#1F2937';
         const tooltipBg = isDark ? '#111827' : '#EEF2FF';
         chart.update({
+
             chart: { backgroundColor: 'transparent', plotBackgroundColor: 'transparent' },
+
             tooltip: {
                 backgroundColor: tooltipBg,
                 style: { color: textColor },
@@ -319,7 +321,9 @@ let envChart = null;
             chart: {
                 type: 'areaspline',
                 backgroundColor: 'transparent',
+
                 plotBackgroundColor: 'transparent',
+
                 animation: false,
                 spacing: [6, 6, 6, 6]
             },
