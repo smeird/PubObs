@@ -242,12 +242,6 @@ let envChart = null;
         dewpoint: '❄️'
     };
 
-    const gradientPalettes = [
-        'from-indigo-500/20 via-white/80 to-white/50 dark:from-indigo-500/20 dark:via-slate-900/70 dark:to-slate-900/40',
-        'from-sky-500/20 via-white/80 to-white/50 dark:from-sky-500/20 dark:via-slate-900/70 dark:to-slate-900/40',
-        'from-purple-500/20 via-white/80 to-white/50 dark:from-purple-500/20 dark:via-slate-900/70 dark:to-slate-900/40',
-        'from-emerald-500/20 via-white/80 to-white/50 dark:from-emerald-500/20 dark:via-slate-900/70 dark:to-slate-900/40'
-    ];
     const statusBaseClasses = 'inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide shadow-sm ring-1 ring-inset transition-colors backdrop-blur-sm';
 
     const miniChartData = {};
@@ -406,13 +400,12 @@ let envChart = null;
             });
     }
 
-    topicEntries.forEach(([name, cfg], idx) => {
+    topicEntries.forEach(([name, cfg]) => {
         const id = 'value-' + sanitize(name);
         const card = document.createElement('div');
-        const gradient = gradientPalettes[idx % gradientPalettes.length];
 
         card.id = 'card-' + sanitize(name);
-        card.className = `relative flex h-full flex-col overflow-hidden rounded-3xl bg-gradient-to-br ${gradient} p-6 shadow-xl shadow-indigo-200/60 dark:shadow-black/40 ring-1 ring-white/40 dark:ring-white/10 transition`; 
+        card.className = 'relative flex h-full flex-col overflow-hidden rounded-3xl bg-white/90 p-6 shadow-xl shadow-indigo-200/60 ring-1 ring-white/40 transition dark:bg-slate-900/85 dark:shadow-black/40 dark:ring-white/10';
         const icon = icons[name] || '📟';
         const label = name.replace(/[_-]/g, ' ');
         const unitMarkup = cfg.unit ? `<span class="ml-1 text-lg font-medium text-slate-500 dark:text-slate-300">${cfg.unit}</span>` : '';
