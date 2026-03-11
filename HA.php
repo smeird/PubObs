@@ -20,19 +20,19 @@ $sqmUnit = $topics['sqm']['unit'] ?? '';
     </script>
 </head>
 <body class="h-full bg-slate-950 text-slate-100 font-sans">
-    <main class="flex h-full min-h-screen flex-col items-center justify-center gap-16 px-8 py-10 text-center">
+    <main class="flex h-full min-h-screen flex-col items-center justify-center gap-12 px-8 py-8 text-center">
         <h1 class="text-3xl font-semibold tracking-wide text-slate-300">Observatory Conditions</h1>
 
-        <section class="w-full max-w-5xl space-y-10">
-            <div class="rounded-3xl border border-slate-700 bg-slate-900/80 p-10 shadow-2xl">
+        <section class="grid w-full max-w-6xl grid-cols-2 gap-8">
+            <div class="rounded-3xl border border-slate-700 bg-slate-900/80 p-8 shadow-2xl">
                 <p class="text-4xl font-medium uppercase tracking-[0.2em] text-slate-300">Clouds</p>
-                <p class="mt-4 text-[8rem] font-bold leading-none sm:text-[10rem]" id="cloudsValue">--</p>
+                <p class="mt-4 text-[6.8rem] font-bold leading-none sm:text-[8.5rem]" id="cloudsValue">--</p>
                 <p class="text-4xl font-semibold text-slate-300"><?php echo htmlspecialchars($cloudsUnit, ENT_QUOTES, 'UTF-8'); ?></p>
             </div>
 
-            <div class="rounded-3xl border border-slate-700 bg-slate-900/80 p-10 shadow-2xl">
+            <div class="rounded-3xl border border-slate-700 bg-slate-900/80 p-8 shadow-2xl">
                 <p class="text-4xl font-medium uppercase tracking-[0.2em] text-slate-300">SQM</p>
-                <p class="mt-4 text-[8rem] font-bold leading-none sm:text-[10rem]" id="sqmValue">--</p>
+                <p class="mt-4 text-[6.8rem] font-bold leading-none sm:text-[8.5rem]" id="sqmValue">--</p>
                 <p class="text-4xl font-semibold text-slate-300"><?php echo htmlspecialchars($sqmUnit, ENT_QUOTES, 'UTF-8'); ?></p>
             </div>
         </section>
