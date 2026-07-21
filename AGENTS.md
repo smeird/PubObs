@@ -47,4 +47,5 @@ Design decisions added after this file should be appended here for future refere
 38. Historical pages load all available data by default, removing the previous seven-day query limit.
 39. Historical queries accept optional `start` or `end` parameters to filter results without requiring both.
 40. Historical pages fetch data asynchronously via a JSON endpoint to handle large result sets without exhausting server memory.
-
+41. The interface uses a professional observatory-console visual system: deep orbital backgrounds, restrained cyan and violet telemetry accents, technical labels, translucent instrument panels, and consistent styles across dashboard, archive, history, and wall-display pages.
+42. Decorative space visuals are implemented with lightweight CSS and SVG so the site remains responsive and does not depend on large generated image assets.

@@ -110,40 +110,42 @@ require_once 'layout.php';
 
 $displayName = ucwords(str_replace(['-', '_'], ' ', $key));
 $pageTitle = 'History: ' . $displayName . ($unit ? ' (' . $unit . ')' : '') . ' - Wheathampstead AstroPhotography Conditions';
-$heroTitle = $displayName . ' History';
+$heroTitle = $displayName . ' telemetry';
 $heroSubtitle = $unit
     ? 'Explore observatory records in ' . $unit . ' and focus on the ranges that matter most.'
     : 'Explore observatory records and focus on the ranges that matter most.';
-$heroAside = '<div class="flex flex-col items-start gap-2">'
-    . '<span class="text-xs font-semibold uppercase tracking-widest text-sky-700 dark:text-sky-300">Selected Topic</span>'
-    . '<span class="text-lg font-semibold text-slate-900 dark:text-slate-100">' . htmlspecialchars($displayName, ENT_QUOTES) . '</span>';
+$heroAside = '<div class="flex flex-col items-start gap-2 border-l border-cyan-300/30 pl-5">'
+    . '<span class="obs-data-label text-cyan-300">Selected channel</span>'
+    . '<span class="font-mono text-lg font-semibold text-white">' . htmlspecialchars($displayName, ENT_QUOTES) . '</span>';
 if ($unit) {
-    $heroAside .= '<span class="text-sm text-slate-600 dark:text-slate-400">Unit: ' . htmlspecialchars($unit, ENT_QUOTES) . '</span>';
+    $heroAside .= '<span class="text-sm text-slate-400">Unit · ' . htmlspecialchars($unit, ENT_QUOTES) . '</span>';
 }
 $heroAside .= '</div>';
 
-$navActions = '<a href="clear.php" class="inline-flex items-center gap-2 rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800">'
+$navActions = '<a href="clear.php" class="obs-nav-link">'
     . '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.5">'
     . '<path stroke-linecap="round" stroke-linejoin="round" d="M16.5 3.75h3.75v3.75M21 3 12.75 11.25" />'
     . '<path stroke-linecap="round" stroke-linejoin="round" d="M18.75 12v6a2.25 2.25 0 0 1-2.25 2.25h-9A2.25 2.25 0 0 1 5.25 18V9a2.25 2.25 0 0 1 2.25-2.25h6" />'
     . '</svg>'
-    . '<span>Monthly View</span>'
+    . '<span class="obs-nav-label">Monthly view</span>'
     . '</a>';
 
 layout_start($pageTitle, $heroTitle, $heroSubtitle, [
-    'extraHead' => '<script src="https://code.highcharts.com/stock/highstock.js"></script>',
+    'extraHead' => '<script src="https://code.highcharts.com/stock/highstock.js"></script>'
+        . '<script src="https://code.highcharts.com/modules/accessibility.js"></script>',
     'navActions' => $navActions,
     'heroAside' => $heroAside,
 ]);
 ?>
 <section>
-    <div class="space-y-6 border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+    <div class="obs-panel space-y-6">
         <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div class="space-y-1">
+                <p class="obs-data-label">ANL-01 · Signal history</p>
                 <h2 class="text-xl font-semibold text-slate-900 dark:text-slate-100">Trend explorer</h2>
                 <p class="text-sm text-slate-600 dark:text-slate-400">Use the preset buttons or drag the timeline below to refine the range.</p>
             </div>
-            <button id="downloadCsv" type="button" class="inline-flex items-center gap-2 rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-700 dark:bg-sky-600 dark:hover:bg-sky-500">
+            <button id="downloadCsv" type="button" class="obs-button obs-button--primary">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0 3.5-3.5M12 15l-3.5-3.5M5 21h14" />
                 </svg>
@@ -171,21 +173,21 @@ let data = [];
 
 function createButtonTheme(isDark) {
     return {
-        fill: isDark ? '#1F2937' : '#EEF2FF',
+        fill: isDark ? '#0B1324' : '#ECFEFF',
         stroke: 'transparent',
         style: {
-            color: isDark ? '#E5E7EB' : '#312E81',
+            color: isDark ? '#67E8F9' : '#0E7490',
             fontWeight: '600'
         },
         states: {
             hover: {
-                fill: isDark ? '#4338CA' : '#C7D2FE',
+                fill: isDark ? '#155E75' : '#CFFAFE',
                 style: {
-                    color: isDark ? '#E0E7FF' : '#312E81'
+                    color: isDark ? '#ECFEFF' : '#155E75'
                 }
             },
             select: {
-                fill: '#4F46E5',
+                fill: '#0891B2',
                 style: {
                     color: '#FFFFFF'
                 }
@@ -227,7 +229,7 @@ const histChart = Highcharts.stockChart('histChart', {
         inputBoxBackgroundColor: 'transparent'
     },
     navigator: {
-        maskFill: 'rgba(99, 102, 241, 0.2)',
+        maskFill: 'rgba(8, 145, 178, 0.2)',
         outlineColor: 'transparent'
     },
     scrollbar: { enabled: false },
@@ -239,7 +241,7 @@ const histChart = Highcharts.stockChart('histChart', {
     series: [{
         name: unit ? (topic + ' (' + unit + ')') : topic,
         data: [],
-        color: '#4F46E5',
+        color: '#0891B2',
         lineWidth: 2,
         tooltip: {
             valueSuffix: unit ? ' ' + unit : ''
@@ -265,7 +267,7 @@ loadData();
 function updateChartTheme() {
     const isDark = document.documentElement.classList.contains('dark');
     const textColor = isDark ? '#F9FAFB' : '#1F2937';
-    const gridColor = isDark ? '#374151' : '#E5E7EB';
+    const gridColor = isDark ? 'rgba(148, 163, 184, 0.14)' : 'rgba(15, 23, 42, 0.09)';
     histChart.update({
         chart: {
             resetZoomButton: {
