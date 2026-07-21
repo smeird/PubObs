@@ -12,28 +12,38 @@ function layout_start(string $pageTitle, string $heroTitle, string $heroSubtitle
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars($pageTitle); ?></title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="observatory.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',
         };
+        try {
+            const storedTheme = localStorage.getItem('color-theme');
+            if (storedTheme === 'dark' || (!storedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            }
+        } catch (error) {}
     </script>
     <?php echo $extraHead; ?>
 </head>
-<body class="min-h-screen bg-slate-100 text-slate-900 antialiased dark:bg-[#0b1120] dark:text-slate-100 font-sans">
-    <div class="min-h-screen">
-        <div class="max-w-7xl mx-auto px-5 py-6 sm:px-8 sm:py-8">
-            <header class="space-y-5 mb-8">
-                <div class="flex flex-wrap items-center justify-between gap-4 border border-slate-200 bg-white px-5 py-4 shadow-sm dark:border-slate-800 dark:bg-slate-950">
-                    <a href="index.php" class="flex items-center gap-3 text-slate-900 dark:text-slate-100 font-semibold hover:text-sky-700 dark:hover:text-sky-300 transition">
-                        <img src="logo.svg" alt="Observatory telescope logo" class="w-9 h-9">
-                        <span class="text-sm tracking-tight">Wheathampstead AstroPhotography Conditions</span>
+<body class="observatory-shell antialiased">
+    <a href="#main-content" class="obs-skip-link">Skip to observatory data</a>
+    <div class="obs-frame">
+            <header class="space-y-4 mb-8">
+                <div class="obs-topbar">
+                    <a href="index.php" class="obs-brand">
+                        <img src="logo.svg" alt="Observatory telescope logo" class="obs-brand-mark">
+                        <span class="obs-brand-copy">
+                            <span class="obs-brand-kicker">WAC · Telemetry node</span>
+                            <span class="obs-brand-title">Wheathampstead Observatory</span>
+                        </span>
                     </a>
-                    <div class="flex items-center gap-3">
+                    <div class="obs-topbar-actions">
                         <?php if ($navActions): ?>
                             <?php echo $navActions; ?>
                         <?php endif; ?>
-                        <button id="modeToggle" type="button" class="inline-flex items-center justify-center w-11 h-11 rounded-md border border-slate-300 bg-white text-slate-700 shadow-sm hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800 transition" aria-live="polite">
+                        <button id="modeToggle" type="button" class="obs-icon-button" aria-live="polite">
                             <span class="sr-only" id="modeToggleLabel">Toggle dark mode</span>
                             <svg id="modeIconSun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-5 w-5 hidden" fill="currentColor">
                                 <path d="M12 4.75a.75.75 0 0 0 .75-.75V2a.75.75 0 0 0-1.5 0v2a.75.75 0 0 0 .75.75Zm5.25 7.25a5.25 5.25 0 1 1-10.5 0 5.25 5.25 0 0 1 10.5 0ZM4.75 12a.75.75 0 0 0-.75-.75H2a.75.75 0 0 0 0 1.5h2a.75.75 0 0 0 .75-.75Zm18 0a.75.75 0 0 0-.75-.75h-2a.75.75 0 0 0 0 1.5h2a.75.75 0 0 0 .75-.75ZM7.11 6.46a.75.75 0 0 0 0-1.06L5.7 4a.75.75 0 0 0-1.06 1.06l1.41 1.4a.75.75 0 0 0 1.06 0Zm12.25-.53 1.4-1.4A.75.75 0 1 0 19.7 3.47l-1.4 1.4a.75.75 0 1 0 1.06 1.06ZM12 19.25a.75.75 0 0 0-.75.75v2a.75.75 0 0 0 1.5 0v-2a.75.75 0 0 0-.75-.75Zm6.89-1.71a.75.75 0 0 0-1.06 0l-1.4 1.4a.75.75 0 0 0 1.06 1.06l1.4-1.4a.75.75 0 0 0 0-1.06ZM5.7 19.7a.75.75 0 1 0 1.06-1.06l-1.4-1.4a.75.75 0 0 0-1.06 1.06l1.4 1.4Z" />
@@ -44,24 +54,24 @@ function layout_start(string $pageTitle, string $heroTitle, string $heroSubtitle
                         </button>
                     </div>
                 </div>
-                <div class="border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950 sm:p-8">
+                <div class="obs-page-hero">
                     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
                         <div class="space-y-3">
-                            <p class="text-sm font-semibold uppercase tracking-widest text-sky-700 dark:text-sky-300">Observatory Insights</p>
-                            <h1 class="text-3xl font-semibold tracking-tight text-slate-950 dark:text-white"><?php echo htmlspecialchars($heroTitle); ?></h1>
+                            <p class="obs-kicker text-cyan-300">Observatory archive · Mission data</p>
+                            <h1 class="text-3xl sm:text-4xl font-semibold tracking-tight text-white"><?php echo htmlspecialchars($heroTitle); ?></h1>
                             <?php if ($heroSubtitle !== ''): ?>
-                                <p class="max-w-2xl text-base leading-7 text-slate-600 dark:text-slate-300"><?php echo htmlspecialchars($heroSubtitle); ?></p>
+                                <p class="max-w-2xl text-base leading-7 text-slate-300"><?php echo htmlspecialchars($heroSubtitle); ?></p>
                             <?php endif; ?>
                         </div>
                         <?php if ($heroAside): ?>
-                            <div class="flex-shrink-0 text-sm text-slate-600 dark:text-slate-300">
+                            <div class="flex-shrink-0 text-sm text-slate-300">
                                 <?php echo $heroAside; ?>
                             </div>
                         <?php endif; ?>
                     </div>
                 </div>
             </header>
-            <main class="space-y-10">
+            <main id="main-content" class="space-y-8">
 <?php
 }
 
@@ -69,7 +79,10 @@ function layout_end(string $extraScripts = ''): void
 {
     ?>
             </main>
-        </div>
+            <footer class="mt-10 flex flex-wrap items-center justify-between gap-3 border-t border-slate-400/20 py-6 text-xs text-slate-500 dark:text-slate-500">
+                <span class="font-mono uppercase tracking-[0.15em]">WAC · Wheathampstead, UK</span>
+                <span>Local observatory telemetry and sky-condition archive</span>
+            </footer>
     </div>
     <script>
         (function() {

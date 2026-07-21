@@ -8,36 +8,42 @@ $cloudsUnit = $topics['clouds']['unit'] ?? '';
 $sqmUnit = $topics['sqm']['unit'] ?? '';
 ?>
 <!DOCTYPE html>
-<html class="h-full" lang="en">
+<html class="h-full dark" lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HA Display | Wheathampstead AstroPhotography Conditions</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="observatory.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = { darkMode: 'class' };
     </script>
 </head>
-<body class="h-full bg-slate-950 text-slate-100 font-sans">
-    <main class="flex h-full min-h-screen flex-col items-center justify-center gap-12 px-8 py-8 text-center">
-        <h1 class="text-3xl font-semibold tracking-wide text-slate-300">Observatory Conditions</h1>
+<body class="observatory-shell h-full text-slate-100">
+    <main class="relative z-10 flex h-full min-h-screen flex-col items-center justify-center gap-9 px-8 py-8 text-center">
+        <header>
+            <p class="obs-kicker text-cyan-300">WAC · Operations display</p>
+            <h1 class="mt-3 text-3xl font-semibold tracking-tight text-slate-100">Observatory Conditions</h1>
+        </header>
 
-        <section class="grid w-full max-w-6xl grid-cols-2 gap-8">
-            <div class="rounded-3xl border border-slate-700 bg-slate-900/80 p-8 shadow-2xl">
-                <p class="text-4xl font-medium uppercase tracking-[0.2em] text-slate-300">Clouds</p>
-                <p class="mt-4 text-[6.8rem] font-bold leading-none sm:text-[8.5rem]" id="cloudsValue">--</p>
-                <p class="text-4xl font-semibold text-slate-300"><?php echo htmlspecialchars($cloudsUnit, ENT_QUOTES, 'UTF-8'); ?></p>
+        <section class="grid w-full max-w-6xl grid-cols-1 gap-5 md:grid-cols-2 md:gap-8">
+            <div class="obs-panel p-8">
+                <p class="obs-data-label text-cyan-300">ATM-04 · Cloud sensor</p>
+                <p class="mt-5 text-3xl font-medium uppercase tracking-[0.18em] text-slate-300">Clouds</p>
+                <p class="mt-5 font-mono text-[4.8rem] font-semibold leading-none tracking-[-0.08em] text-cyan-200 sm:text-[6.8rem] lg:text-[8.5rem]" id="cloudsValue">--</p>
+                <p class="mt-2 font-mono text-3xl font-semibold text-slate-400"><?php echo htmlspecialchars($cloudsUnit, ENT_QUOTES, 'UTF-8'); ?></p>
             </div>
 
-            <div class="rounded-3xl border border-slate-700 bg-slate-900/80 p-8 shadow-2xl">
-                <p class="text-4xl font-medium uppercase tracking-[0.2em] text-slate-300">SQM</p>
-                <p class="mt-4 text-[6.8rem] font-bold leading-none sm:text-[8.5rem]" id="sqmValue">--</p>
-                <p class="text-4xl font-semibold text-slate-300"><?php echo htmlspecialchars($sqmUnit, ENT_QUOTES, 'UTF-8'); ?></p>
+            <div class="obs-panel p-8">
+                <p class="obs-data-label text-violet-300">SKY-06 · Quality meter</p>
+                <p class="mt-5 text-3xl font-medium uppercase tracking-[0.18em] text-slate-300">SQM</p>
+                <p class="mt-5 font-mono text-[4.8rem] font-semibold leading-none tracking-[-0.08em] text-violet-200 sm:text-[6.8rem] lg:text-[8.5rem]" id="sqmValue">--</p>
+                <p class="mt-2 font-mono text-3xl font-semibold text-slate-400"><?php echo htmlspecialchars($sqmUnit, ENT_QUOTES, 'UTF-8'); ?></p>
             </div>
         </section>
 
-        <p id="mqttStatus" class="text-2xl font-semibold text-amber-300">Connecting to MQTT...</p>
+        <p id="mqttStatus" class="obs-status-pill text-base">MQTT · Connecting</p>
     </main>
 
     <script>
@@ -56,12 +62,12 @@ $sqmUnit = $topics['sqm']['unit'] ?? '';
 
         function updateStatus(message, className) {
             statusEl.textContent = message;
-            statusEl.className = className;
+            statusEl.className = 'obs-status-pill text-base ' + className;
         }
 
         function scheduleReconnect() {
             const delay = Math.min(1000 * Math.pow(2, connectAttempts), 30000);
-            updateStatus('Reconnecting to MQTT...', 'text-2xl font-semibold text-amber-300');
+            updateStatus('MQTT · Reconnecting', 'obs-status-pill--warn');
             setTimeout(() => {
                 connectAttempts++;
                 connectClient();
@@ -70,7 +76,7 @@ $sqmUnit = $topics['sqm']['unit'] ?? '';
 
         function connectClient() {
             if (!window.mqtt) {
-                updateStatus('MQTT unavailable', 'text-2xl font-semibold text-rose-400');
+                updateStatus('MQTT · Unavailable', 'obs-status-pill--bad');
                 return;
             }
 
@@ -81,7 +87,7 @@ $sqmUnit = $topics['sqm']['unit'] ?? '';
             });
 
             client.on('connect', () => {
-                updateStatus('Connected', 'text-2xl font-semibold text-emerald-400');
+                updateStatus('MQTT · Connected', 'obs-status-pill--ok');
                 connectAttempts = 0;
                 client.subscribe(cloudsTopic);
                 client.subscribe(sqmTopic);
@@ -103,18 +109,18 @@ $sqmUnit = $topics['sqm']['unit'] ?? '';
             });
 
             client.on('close', () => {
-                updateStatus('Disconnected', 'text-2xl font-semibold text-rose-400');
+                updateStatus('MQTT · Disconnected', 'obs-status-pill--bad');
                 scheduleReconnect();
             });
 
             client.on('error', () => {
-                updateStatus('MQTT error', 'text-2xl font-semibold text-rose-400');
+                updateStatus('MQTT · Error', 'obs-status-pill--bad');
             });
         }
 
         function loadMQTT(urls, idx = 0) {
             if (idx >= urls.length) {
-                updateStatus('MQTT unavailable', 'text-2xl font-semibold text-rose-400');
+                updateStatus('MQTT · Unavailable', 'obs-status-pill--bad');
                 return;
             }
             const script = document.createElement('script');

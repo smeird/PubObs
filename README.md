@@ -1,6 +1,6 @@
 # Wheathampstead AstroPhotography Conditions
 
-Website that publicly shows observatory sensor data. The site displays live and historical sensor readings with a modern interface.
+Website that publicly shows observatory sensor data. The site displays live and historical sensor readings through a professional, space-age telemetry interface designed around the observatory's own instruments.
 
 ## Features
 
@@ -14,6 +14,8 @@ Website that publicly shows observatory sensor data. The site displays live and 
 
 - Historical pages accept optional `start` and `end` query parameters (`YYYY-MM-DD`) to limit the data returned
 - Clear page shows safe observing hours aggregated by month for a selected year
+- Shared observatory-console design across the dashboard, archive, history, and wall-display pages
+- Lightweight CSS/SVG orbital visuals with no large decorative image downloads
 
 ## Sensor Data Tables
 

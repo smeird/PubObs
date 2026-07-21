@@ -47,6 +47,9 @@ try {
 } catch (Exception $e) {
     $monthHours = array_fill(1, 12, 0.0);
 }
+if (empty($years)) {
+    $years = [$year];
+}
 // Round hours for output
 $monthHours = array_map(function ($h) { return round($h, 2); }, $monthHours);
 $monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -54,44 +57,46 @@ $monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov'
 require_once 'layout.php';
 
 $pageTitle = 'Clear Observing by Month - Wheathampstead AstroPhotography Conditions';
-$heroTitle = 'Monthly Clear Sky Hours';
-$heroSubtitle = 'Review the cumulative safe observing time recorded by the observatory for each month.';
-$heroAside = '<div class="flex flex-col items-start gap-2">'
-    . '<span class="text-xs font-semibold uppercase tracking-widest text-sky-700 dark:text-sky-300">Selected Year</span>'
-    . '<span class="text-3xl font-bold text-slate-900 dark:text-slate-100">' . htmlspecialchars((string)$year, ENT_QUOTES) . '</span>'
+$heroTitle = 'Clear-sky archive';
+$heroSubtitle = 'Compare the observing windows recorded by the local sensor array across every month of the year.';
+$heroAside = '<div class="flex flex-col items-start gap-2 border-l border-cyan-300/30 pl-5">'
+    . '<span class="obs-data-label text-cyan-300">Selected cycle</span>'
+    . '<span class="font-mono text-3xl font-semibold text-white">' . htmlspecialchars((string)$year, ENT_QUOTES) . '</span>'
     . '</div>';
-$navActions = '<a href="historical.php?topic=safe" class="inline-flex items-center gap-2 rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800">'
+$navActions = '<a href="historical.php?topic=safe" class="obs-nav-link">'
     . '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.5">'
     . '<path stroke-linecap="round" stroke-linejoin="round" d="M8.25 21h-2.5A2.75 2.75 0 0 1 3 18.25v-2.5m18 0v2.5A2.75 2.75 0 0 1 18.25 21h-2.5" />'
     . '<path stroke-linecap="round" stroke-linejoin="round" d="M3 5.75v-2A.75.75 0 0 1 3.75 3h2a.75.75 0 0 1 .75.75V6M18.75 3h1.5a.75.75 0 0 1 .75.75v1.5M21 18v.75a.75.75 0 0 1-.75.75H18" />'
     . '<path stroke-linecap="round" stroke-linejoin="round" d="M6 6h12v12H6z" />'
     . '</svg>'
-    . '<span>Safe Trend</span>'
+    . '<span class="obs-nav-label">Safe trend</span>'
     . '</a>';
 
 layout_start($pageTitle, $heroTitle, $heroSubtitle, [
-    'extraHead' => '<script src="https://code.highcharts.com/highcharts.js"></script>',
+    'extraHead' => '<script src="https://code.highcharts.com/highcharts.js"></script>'
+        . '<script src="https://code.highcharts.com/modules/accessibility.js"></script>',
     'navActions' => $navActions,
     'heroAside' => $heroAside,
 ]);
 ?>
 <section>
-    <div class="space-y-6 border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+    <div class="obs-panel space-y-6">
         <div class="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
             <div class="space-y-1">
+                <p class="obs-data-label">ANL-03 · Seasonal yield</p>
                 <h2 class="text-xl font-semibold text-slate-900 dark:text-slate-100">Compare observing seasons</h2>
                 <p class="text-sm text-slate-600 dark:text-slate-400">Select a year to chart monthly totals of safe observing hours.</p>
             </div>
             <form method="get" class="grid grid-cols-1 gap-3 sm:grid-cols-[auto_auto] sm:items-end">
                 <label class="flex flex-col gap-2 text-sm font-medium text-gray-700 dark:text-gray-200">
                     <span>Observation year</span>
-                    <select name="year" class="w-full rounded-xl border border-indigo-200 bg-white/80 px-3 py-2 text-base font-semibold text-gray-800 shadow-sm transition focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-indigo-700/50 dark:bg-gray-900/60 dark:text-gray-100 dark:focus:border-indigo-400 dark:focus:ring-indigo-600/40">
+                    <select name="year" class="obs-select w-full">
                         <?php foreach ($years as $y): ?>
                             <option value="<?= htmlspecialchars($y) ?>" <?= $y == $year ? 'selected' : '' ?>><?= htmlspecialchars($y) ?></option>
                         <?php endforeach; ?>
                     </select>
                 </label>
-                <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-md bg-slate-900 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-700 dark:bg-sky-600 dark:hover:bg-sky-500">
+                <button type="submit" class="obs-button obs-button--primary">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12h15m-15 0 4.5 4.5M4.5 12l4.5-4.5" />
                     </svg>
@@ -115,10 +120,10 @@ const chartYear = {$yearJson};
 
 function createResetZoomTheme(isDark) {
     return {
-        fill: isDark ? '#1F2937' : '#EEF2FF',
+        fill: isDark ? '#0B1324' : '#ECFEFF',
         stroke: 'transparent',
         style: {
-            color: isDark ? '#E5E7EB' : '#312E81',
+            color: isDark ? '#67E8F9' : '#0E7490',
             fontWeight: '600'
         }
     };
@@ -138,7 +143,8 @@ const chart = Highcharts.chart('monthChart', {
             theme: createResetZoomTheme(document.documentElement.classList.contains('dark'))
         }
     },
-    title: { text: null },
+    title: { text: 'Monthly clear-sky yield', align: 'left' },
+    subtitle: { text: 'Recorded safe observing hours for ' + chartYear, align: 'left' },
     credits: { enabled: false },
     legend: { enabled: false },
     xAxis: {
@@ -163,20 +169,22 @@ const chart = Highcharts.chart('monthChart', {
     series: [{
         name: 'Safe hours in ' + chartYear,
         data: monthData,
-        color: '#4F46E5'
+        color: '#0891B2'
     }]
 });
 
 function updateChartTheme() {
     const isDark = document.documentElement.classList.contains('dark');
     const textColor = isDark ? '#F9FAFB' : '#1F2937';
-    const gridColor = isDark ? '#374151' : '#E5E7EB';
+    const gridColor = isDark ? 'rgba(148, 163, 184, 0.14)' : 'rgba(15, 23, 42, 0.09)';
     chart.update({
         chart: {
             resetZoomButton: {
                 theme: createResetZoomTheme(isDark)
             }
         },
+        title: { style: { color: textColor, fontSize: '15px', fontWeight: '650' } },
+        subtitle: { style: { color: isDark ? '#91A2B8' : '#64748B', fontSize: '11px' } },
         xAxis: {
             labels: { style: { color: textColor } },
             lineColor: 'transparent',
@@ -192,7 +200,7 @@ function updateChartTheme() {
             style: { color: textColor }
         },
         series: [{
-            color: '#4F46E5'
+            color: isDark ? '#22D3EE' : '#0891B2'
         }]
     }, false);
     chart.redraw();

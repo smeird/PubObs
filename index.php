@@ -79,89 +79,120 @@ $last7SafeHoursDisplay = $last7SafeHours !== null ? number_format($last7SafeHour
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Wheathampstead AstroPhotography Conditions</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="observatory.css">
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',
         }
+        try {
+            const storedTheme = localStorage.getItem('color-theme');
+            if (storedTheme === 'dark' || (!storedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            }
+        } catch (error) {}
     </script>
     <!-- Highcharts -->
     <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/modules/accessibility.js"></script>
 </head>
-<body class="min-h-screen bg-slate-100 text-slate-900 antialiased dark:bg-[#0b1120] dark:text-slate-100 font-sans">
-    <div class="max-w-7xl mx-auto px-5 py-6 sm:px-8 sm:py-8">
-        <header id="heroCard" class="mb-8 overflow-hidden border border-slate-800 bg-slate-950 text-white shadow-sm dark:border-slate-700">
-            <div class="border-b border-white/10 px-6 py-4 sm:px-8">
-                <div class="flex flex-wrap items-center justify-between gap-4">
-                    <a href="index.php" class="flex items-center gap-3 font-semibold tracking-tight text-white">
-                        <img src="logo.svg" alt="Observatory telescope logo" class="h-9 w-9" />
-                        <span class="text-sm sm:text-base">Wheathampstead AstroPhotography Conditions</span>
+<body class="observatory-shell antialiased">
+    <a href="#main-content" class="obs-skip-link">Skip to live observatory data</a>
+    <div class="obs-frame">
+        <header class="mb-8 space-y-4">
+            <div class="obs-topbar">
+                    <a href="index.php" class="obs-brand">
+                        <img src="logo.svg" alt="Observatory telescope logo" class="obs-brand-mark" />
+                        <span class="obs-brand-copy">
+                            <span class="obs-brand-kicker">WAC · Telemetry node</span>
+                            <span class="obs-brand-title">Wheathampstead Observatory</span>
+                        </span>
                     </a>
-                    <div class="flex items-center gap-3">
-                        <span id="mqttStatus" class="inline-flex items-center gap-2 rounded-md border border-amber-300/30 bg-amber-50/10 px-3 py-1.5 text-xs font-semibold text-amber-100">Connecting...</span>
-                        <button id="modeToggle" class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-white/15 text-slate-200 transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300" aria-label="Switch to Dark Mode">
+                    <div class="obs-topbar-actions">
+                        <a href="clear.php" class="obs-nav-link"><span class="obs-nav-label">Sky archive</span><span aria-hidden="true">↗</span></a>
+                        <a href="HA.php" class="obs-nav-link"><span class="obs-nav-label">Wall display</span><span aria-hidden="true">▣</span></a>
+                        <span id="mqttStatus" class="obs-status-pill">Connecting</span>
+                        <button id="modeToggle" class="obs-icon-button" aria-label="Switch to Dark Mode">
                             <span aria-hidden="true">◐</span><span class="sr-only">Toggle colour mode</span>
                         </button>
                     </div>
-                </div>
             </div>
-            <div class="grid gap-8 px-6 py-9 sm:px-8 lg:grid-cols-[1fr_auto] lg:items-end">
+            <section id="heroCard" class="obs-hero">
+            <div class="obs-hero-grid">
                 <div>
-                    <p class="mb-3 text-xs font-semibold uppercase tracking-[0.22em] text-sky-300">Live observatory dashboard</p>
-                    <h1 class="max-w-3xl text-3xl font-semibold tracking-tight sm:text-5xl">Know when the sky is ready.</h1>
-                    <p class="mt-4 max-w-2xl text-base leading-7 text-slate-300">A calm, focused view of current conditions, recent observations, and the roof camera — built for planning your next session.</p>
+                    <p class="obs-kicker mb-5 text-cyan-300">Live observatory intelligence · 51.81° N</p>
+                    <h1 class="obs-hero-title">Read the atmosphere.<br>Catch the clear window.</h1>
+                    <p class="obs-hero-copy">A live view of the sky above Wheathampstead—combining local weather instruments, roof-camera imagery, and historical observing conditions in one precise workspace.</p>
                 </div>
-                <div class="min-w-[15rem] border-l border-white/15 pl-5">
-                    <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Safe observing · 7 days</p>
-                    <p class="mt-2 text-4xl font-semibold tracking-tight">
-                        <?= htmlspecialchars($last7SafeHoursDisplay, ENT_QUOTES, 'UTF-8'); ?><?php if ($last7SafeHours !== null): ?><span class="ml-1 text-base font-medium text-slate-400">hours</span><?php endif; ?>
+                <div class="obs-hero-metric">
+                    <p class="obs-data-label text-cyan-300">Clear-sky yield · Rolling 7d</p>
+                    <p class="obs-metric-value">
+                        <?= htmlspecialchars($last7SafeHoursDisplay, ENT_QUOTES, 'UTF-8'); ?><?php if ($last7SafeHours !== null): ?><span class="obs-metric-unit">hours</span><?php endif; ?>
                     </p>
-                    <a href="clear.php" class="mt-4 inline-flex text-sm font-semibold text-sky-300 transition hover:text-sky-200">Review monthly conditions <span class="ml-2" aria-hidden="true">→</span></a>
+                    <p class="mt-3 text-sm leading-6 text-slate-400">Accumulated time when local instruments reported safe observing conditions.</p>
+                    <a href="clear.php" class="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-cyan-300 transition hover:text-cyan-100">Open sky archive <span aria-hidden="true">→</span></a>
                 </div>
             </div>
+            <div class="obs-hero-footer" aria-label="Observatory system overview">
+                <div class="obs-hero-footer-item"><span class="obs-signal-dot obs-signal-dot--live"></span><span>Telemetry · MQTT stream</span></div>
+                <div class="obs-hero-footer-item"><span class="font-mono text-cyan-300">CAM-01</span><span>Roof all-sky camera</span></div>
+                <div class="obs-hero-footer-item"><span class="font-mono text-violet-300">UTC</span><span id="utcClock">Synchronising clock</span></div>
+            </div>
+            </section>
         </header>
-        <section class="mb-4 flex flex-wrap items-end justify-between gap-3">
-            <div><p class="text-xs font-semibold uppercase tracking-[0.18em] text-sky-700 dark:text-sky-300">Current conditions</p><h2 class="mt-1 text-xl font-semibold tracking-tight">Live instrument readings</h2></div>
-            <p class="text-sm text-slate-500 dark:text-slate-400">Values update as messages arrive.</p>
+        <main id="main-content">
+        <section class="obs-section-head">
+            <div><p class="obs-kicker">Atmospheric array · Live</p><h2 class="obs-section-title">Current instrument readings</h2></div>
+            <p class="obs-section-note"><span class="font-mono"><?= count($topics); ?> channels</span> · Values update as packets arrive</p>
         </section>
         <div id="cards" class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 auto-rows-fr"></div>
-        <div class="mt-8 grid grid-cols-1 gap-4 lg:grid-cols-[1fr_1.2fr] lg:items-stretch">
-            <section id="skyImageContainer" class="relative flex flex-col overflow-hidden border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+        <div class="mt-8 grid grid-cols-1 gap-4 lg:grid-cols-[1.08fr_1fr] lg:items-stretch">
+            <section id="skyImageContainer" class="obs-panel relative flex flex-col">
                 <div class="flex items-center justify-between gap-3">
-                    <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100">Live Sky Camera</h2>
-                    <button type="button" data-target="skyImageContainer" class="fullscreen-toggle inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-700 shadow-sm transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800" aria-label="Toggle full screen for sky image">
+                    <div><p class="obs-data-label">CAM-01 · Roof array</p><h2 class="mt-1 text-lg font-semibold">All-sky camera</h2></div>
+                    <button type="button" data-target="skyImageContainer" class="fullscreen-toggle obs-icon-button" aria-label="Toggle full screen for sky image">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M8 3H5a2 2 0 0 0-2 2v3m0 8v3a2 2 0 0 0 2 2h3m8 0h3a2 2 0 0 0 2-2v-3m0-8V5a2 2 0 0 0-2-2h-3" />
                         </svg>
                     </button>
                 </div>
-                <div class="mt-4 flex flex-1 items-center justify-center overflow-hidden rounded-lg bg-slate-950 p-2 shadow-inner dark:bg-slate-900 min-h-[18rem]">
-                    <img id="skyImage" alt="Sky image" class="max-h-full w-full object-contain" />
-                </div>
-                <p class="mt-4 text-sm text-gray-600 dark:text-gray-300">Updated continuously from the observatory roof camera.</p>
-            </section>
-            <section id="chartHub" class="relative flex flex-col overflow-hidden border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-950">
-                <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div role="tablist" aria-label="Chart selection" class="inline-flex rounded-md border border-slate-200 bg-slate-100 p-1 text-sm font-semibold text-slate-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
-                        <button type="button" data-chart-tab="safe" class="chart-tab rounded-full px-4 py-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-200 dark:focus-visible:ring-indigo-400" role="tab" aria-selected="true">Safe Hours</button>
-                        <button type="button" data-chart-tab="realtime" class="chart-tab rounded-full px-4 py-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-200 dark:focus-visible:ring-indigo-400" role="tab" aria-selected="false">Realtime Trends</button>
+                <div class="obs-camera-well mt-4 flex flex-1 items-center justify-center p-2">
+                    <div id="skyImagePlaceholder" class="obs-camera-placeholder" aria-live="polite">
+                        <span class="obs-reticle" aria-hidden="true"></span>
+                        <span class="obs-data-label text-slate-500">Awaiting next camera frame</span>
                     </div>
-                    <button type="button" data-target="chartHub" class="fullscreen-toggle inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-700 shadow-sm transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800" aria-label="Toggle full screen for charts">
+                    <img id="skyImage" alt="Latest image from the observatory roof camera" class="relative z-10 max-h-full w-full object-contain" />
+                </div>
+                <div class="mt-4 flex items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400"><span>Updated continuously via MQTT</span><span class="font-mono uppercase tracking-wider">JPEG · LIVE</span></div>
+            </section>
+            <section id="chartHub" class="obs-panel relative flex flex-col">
+                <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <p class="obs-data-label">ANL-02 · Signal analysis</p>
+                        <div role="tablist" aria-label="Chart selection" class="obs-segmented mt-2">
+                        <button type="button" data-chart-tab="safe" class="chart-tab obs-tab" role="tab" aria-selected="true">Clear-sky history</button>
+                        <button type="button" data-chart-tab="realtime" class="chart-tab obs-tab" role="tab" aria-selected="false">Live environment</button>
+                        </div>
+                    </div>
+                    <button type="button" data-target="chartHub" class="fullscreen-toggle obs-icon-button" aria-label="Toggle full screen for charts">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M8 3H5a2 2 0 0 0-2 2v3m0 8v3a2 2 0 0 0 2 2h3m8 0h3a2 2 0 0 0 2-2v-3m0-8V5a2 2 0 0 0-2-2h-3" />
                         </svg>
                     </button>
                 </div>
-                <div id="chartDisplay" class="relative mt-4 flex-1 overflow-hidden rounded-lg bg-slate-50 p-2 dark:bg-slate-900/60 min-h-[18rem]">
+                <div id="chartDisplay" class="obs-chart-well relative mt-4 flex-1 p-2 min-h-[22rem]">
                     <div id="safeChart" class="absolute inset-0"></div>
                     <div id="envChart" class="absolute inset-0 hidden"></div>
                 </div>
-                <p class="mt-4 text-sm text-gray-600 dark:text-gray-300">
-                    Compare long-term safe observing hours with live sensor readings using the tabs above.
-                </p>
+                <p class="mt-4 text-xs leading-5 text-slate-500 dark:text-slate-400">Thirty-day observing conditions and live environmental signals share a common analysis surface.</p>
             </section>
         </div>
+        </main>
+        <footer class="mt-10 flex flex-wrap items-center justify-between gap-3 border-t border-slate-400/20 py-6 text-xs text-slate-500 dark:text-slate-500">
+            <span class="font-mono uppercase tracking-[0.15em]">WAC · Wheathampstead, UK</span>
+            <span>Local instruments · Local sky intelligence</span>
+        </footer>
     </div>
 
     <script>
@@ -187,19 +218,11 @@ const envSeriesData = envTopicNames.map(() => []);
 let envChart = null;
 
     const heroCard = document.getElementById('heroCard');
-    const heroDefaultGradientClasses = ['bg-slate-950', 'dark:bg-slate-950'];
-    const heroSafeGradientClasses = ['bg-emerald-950', 'dark:bg-emerald-950'];
     let heroState = 'default';
 
     function setHeroGradient(state) {
         if (!heroCard || state === heroState) return;
-        if (state === 'safe') {
-            heroCard.classList.remove(...heroDefaultGradientClasses);
-            heroCard.classList.add(...heroSafeGradientClasses);
-        } else {
-            heroCard.classList.remove(...heroSafeGradientClasses);
-            heroCard.classList.add(...heroDefaultGradientClasses);
-        }
+        heroCard.classList.toggle('obs-hero--safe', state === 'safe');
         heroState = state;
     }
 
@@ -222,6 +245,9 @@ let envChart = null;
     const cardsContainer = document.getElementById('cards');
     cardsContainer.innerHTML = '';
     const sanitize = name => name.replace(/[^a-zA-Z0-9_-]/g, '_');
+    const escapeHtml = value => String(value).replace(/[&<>'"]/g, character => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#039;', '"': '&quot;'
+    })[character]);
 
     const icons = {
         temperature: 'TMP',
@@ -234,7 +260,7 @@ let envChart = null;
         dewpoint: 'DPT'
     };
 
-    const statusBaseClasses = 'inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide shadow-sm ring-1 ring-inset transition-colors backdrop-blur-sm';
+    const statusBaseClasses = 'inline-flex items-center rounded-full border px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-[0.12em] transition-colors';
 
     const miniChartData = {};
     const miniCharts = {};
@@ -255,15 +281,15 @@ let envChart = null;
         const isDark = document.documentElement.classList.contains('dark');
         if (isDark) {
             return {
-                line: 'rgba(165, 180, 252, 0.9)',
-                fillTop: 'rgba(129, 140, 248, 0.35)',
-                fillBottom: 'rgba(129, 140, 248, 0.05)'
+                line: 'rgba(103, 232, 249, 0.95)',
+                fillTop: 'rgba(34, 211, 238, 0.28)',
+                fillBottom: 'rgba(34, 211, 238, 0.02)'
             };
         }
         return {
-            line: 'rgba(79, 70, 229, 0.9)',
-            fillTop: 'rgba(129, 140, 248, 0.25)',
-            fillBottom: 'rgba(99, 102, 241, 0.04)'
+            line: 'rgba(8, 145, 178, 0.95)',
+            fillTop: 'rgba(6, 182, 212, 0.2)',
+            fillBottom: 'rgba(6, 182, 212, 0.02)'
         };
     }
 
@@ -272,7 +298,7 @@ let envChart = null;
         const palette = getMiniChartPalette();
         const isDark = document.documentElement.classList.contains('dark');
         const textColor = isDark ? '#F9FAFB' : '#1F2937';
-        const tooltipBg = isDark ? '#111827' : '#EEF2FF';
+        const tooltipBg = isDark ? '#0B1324' : '#FFFFFF';
         chart.update({
 
             chart: { backgroundColor: 'transparent', plotBackgroundColor: 'transparent' },
@@ -397,37 +423,37 @@ let envChart = null;
         const card = document.createElement('div');
 
         card.id = 'card-' + sanitize(name);
-        card.className = 'relative flex h-full flex-col overflow-hidden border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-800 dark:bg-slate-950';
+        card.className = 'obs-readout-card flex h-full flex-col';
         const icon = icons[name] || 'SEN';
-        const label = name.replace(/[_-]/g, ' ');
-        const unitMarkup = cfg.unit ? `<span class="ml-1 text-lg font-medium text-slate-500 dark:text-slate-300">${cfg.unit}</span>` : '';
+        const label = escapeHtml(name.replace(/[_-]/g, ' '));
+        const unitMarkup = cfg.unit ? `<span class="obs-readout-unit">${escapeHtml(cfg.unit)}</span>` : '';
         card.innerHTML = `
             <div class="relative flex h-full flex-col justify-between gap-5">
                 <div class="flex flex-wrap items-start justify-between gap-3">
                     <div class="flex items-center gap-3">
-                        <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-50 text-[10px] font-bold tracking-wide text-sky-700 dark:bg-sky-950 dark:text-sky-300"><span>${icon}</span></div>
+                        <div class="obs-instrument-mark"><span class="obs-instrument-code">${icon}</span></div>
                         <div class="flex flex-col">
-                            <h2 class="text-base font-semibold capitalize text-slate-900 dark:text-slate-100">${label}</h2>
-                            <p class="text-[11px] font-medium uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">Live sensor</p>
+                            <h3 class="text-base font-semibold capitalize text-slate-900 dark:text-slate-100">${label}</h3>
+                            <p class="obs-data-label mt-1">Instrument channel</p>
                         </div>
                     </div>
-                    <span id="status-${sanitize(name)}" class="${statusBaseClasses} bg-slate-100/80 text-slate-600 ring-slate-200/70">Monitoring</span>
+                    <span id="status-${sanitize(name)}" class="${statusBaseClasses} border-slate-300/60 bg-slate-500/5 text-slate-500 dark:border-slate-700 dark:text-slate-400">Awaiting</span>
                 </div>
                 <div class="flex flex-col gap-4">
-                    <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                        <p class="text-4xl font-semibold tracking-tight text-slate-900 dark:text-white">
+                    <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                        <p class="obs-readout-value text-slate-900 dark:text-white">
                             <span id="${id}">--</span>${unitMarkup}
                         </p>
-                        <div class="relative h-24 w-full overflow-hidden rounded-md bg-slate-50 ring-1 ring-slate-100 dark:bg-slate-900 dark:ring-slate-800 sm:h-28 sm:w-auto sm:min-w-[10rem]">
+                        <div class="obs-chart-well relative h-24 w-full sm:h-28 sm:w-auto sm:min-w-[10rem]">
                             <div id="chart-${sanitize(name)}" class="absolute inset-0"></div>
                         </div>
                     </div>
                     <div class="flex flex-wrap items-center gap-2">
-                        <a href="historical.php?topic=${encodeURIComponent(name)}" class="inline-flex items-center gap-2 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800" aria-label="View History">
+                        <a href="historical.php?topic=${encodeURIComponent(name)}" class="obs-button" aria-label="View ${label} history">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 3v18h18M6 15l4-4 3 3 7-7" />
                             </svg>
-                            View History
+                            Open history
                         </a>
                     </div>
                 </div>
@@ -443,14 +469,14 @@ let envChart = null;
     let client;
     let connectAttempts = 0;
 
-    function updateStatus(text, cls) {
+    function updateStatus(text, state = 'warn') {
         statusEl.textContent = text;
-        statusEl.className = 'inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold shadow-sm ring-1 ring-white/50 backdrop-blur ' + cls;
+        statusEl.className = `obs-status-pill obs-status-pill--${state}`;
     }
 
     function scheduleReconnect() {
         const delay = Math.min(1000 * Math.pow(2, connectAttempts), 30000);
-        updateStatus('Reconnecting...', 'bg-amber-100/90 text-amber-800');
+        updateStatus('MQTT · Reconnecting', 'warn');
         setTimeout(() => {
             connectAttempts++;
             connectClient();
@@ -460,7 +486,7 @@ let envChart = null;
     function connectClient() {
         if (!window.mqtt) {
             console.warn('MQTT.js library is not loaded');
-            updateStatus('MQTT unavailable', 'bg-red-100 text-red-700');
+            updateStatus('MQTT · Unavailable', 'bad');
             return;
         }
         const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
@@ -475,15 +501,17 @@ let envChart = null;
 
     function onConnectionLost() {
         console.log('Connection lost');
-        updateStatus('Disconnected', 'bg-red-100 text-red-700');
+        updateStatus('MQTT · Disconnected', 'bad');
         scheduleReconnect();
     }
     function onMessageArrived(topic, message) {
         if (topic === 'Observatory/skyimage') {
             const img = document.getElementById('skyImage');
+            const placeholder = document.getElementById('skyImagePlaceholder');
             if (skyImageUrl) URL.revokeObjectURL(skyImageUrl);
             const blob = new Blob([message], { type: 'image/jpeg' });
             skyImageUrl = URL.createObjectURL(blob);
+            img.onload = () => { if (placeholder) placeholder.hidden = true; };
             img.src = skyImageUrl;
             return;
         }
@@ -517,10 +545,10 @@ let envChart = null;
                 if (statusEl) {
                     if (match) {
                         statusEl.textContent = 'Favorable';
-                        statusEl.className = `${statusBaseClasses} bg-emerald-100/90 text-emerald-700 ring-emerald-300/60`;
+                        statusEl.className = `${statusBaseClasses} border-emerald-400/30 bg-emerald-400/10 text-emerald-600 dark:text-emerald-300`;
                     } else {
                         statusEl.textContent = 'Warning';
-                        statusEl.className = `${statusBaseClasses} bg-rose-100/90 text-rose-700 ring-rose-300/60`;
+                        statusEl.className = `${statusBaseClasses} border-rose-400/30 bg-rose-400/10 text-rose-600 dark:text-rose-300`;
                     }
                 }
 
@@ -529,8 +557,8 @@ let envChart = null;
                 }
             } else {
                 if (statusEl) {
-                    statusEl.textContent = 'Monitoring';
-                    statusEl.className = `${statusBaseClasses} bg-slate-100/80 text-slate-600 ring-slate-200/70`;
+                    statusEl.textContent = 'Live';
+                    statusEl.className = `${statusBaseClasses} border-cyan-400/25 bg-cyan-400/5 text-cyan-700 dark:text-cyan-300`;
                 }
                 if (isTrackedSensor) {
                     sensorStatus.set(name, 'unknown');
@@ -560,7 +588,7 @@ let envChart = null;
         }
     }
     function onConnect() {
-        updateStatus('Connected', 'bg-emerald-100 text-emerald-700');
+        updateStatus('MQTT · Connected', 'ok');
         connectAttempts = 0;
         Object.values(topics).forEach(cfg => client.subscribe(cfg.topic));
         client.subscribe('Observatory/skyimage');
@@ -569,7 +597,7 @@ let envChart = null;
     function loadMQTT(urls, idx = 0) {
         if (idx >= urls.length) {
             console.warn('MQTT.js library failed to load');
-            updateStatus('MQTT unavailable', 'bg-red-100 text-red-700');
+            updateStatus('MQTT · Unavailable', 'bad');
             return;
         }
         const script = document.createElement('script');
@@ -591,16 +619,27 @@ let envChart = null;
             type: 'column',
             backgroundColor: 'transparent',
             plotBackgroundColor: 'transparent',
+            spacing: [22, 16, 12, 12],
             zooming: {
                 type: 'x',
                 mouseWheel: true
             },
             zoomType: 'x'
         },
-        title: { text: 'Observable Hours (Last 30 Days)' },
+        title: { text: 'Observable window · last 30 days', align: 'left' },
+        subtitle: { text: 'Hours reported safe by the local sensor array', align: 'left' },
+        credits: { enabled: false },
+        legend: { enabled: false },
         xAxis: { categories: safeCategories },
         yAxis: { title: { text: 'Hours' } },
-        series: [{ name: 'Hours', data: safeHours }]
+        plotOptions: {
+            column: {
+                borderWidth: 0,
+                borderRadius: 3,
+                color: '#0891b2'
+            }
+        },
+        series: [{ name: 'Safe hours', data: safeHours }]
     });
 
     function ensureEnvChart() {
@@ -616,9 +655,12 @@ let envChart = null;
                 },
                 zoomType: 'x'
             },
-            title: { text: 'Realtime Clouds, Light, SQM' },
+            title: { text: 'Live atmospheric signals', align: 'left' },
+            subtitle: { text: 'Cloud temperature, ambient light and sky quality', align: 'left' },
+            credits: { enabled: false },
             xAxis: { type: 'datetime' },
-            series: envSeriesLabels.map((name, idx) => ({ name, data: envSeriesData[idx].slice() }))
+            colors: ['#22d3ee', '#a78bfa', '#34d399'],
+            series: envSeriesLabels.map((name, idx) => ({ name, data: envSeriesData[idx].slice(), lineWidth: 2 }))
         });
         updateChartsTheme();
         return envChart;
@@ -628,15 +670,11 @@ let envChart = null;
     const safeChartContainer = document.getElementById('safeChart');
     const envChartContainer = document.getElementById('envChart');
     let activeChartTab = null;
-    const activeTabClasses = ['bg-white', 'text-indigo-700', 'shadow', 'dark:bg-gray-800', 'dark:text-indigo-100'];
-    const inactiveTabClasses = ['text-indigo-500', 'hover:text-indigo-700', 'dark:text-indigo-200', 'dark:hover:text-indigo-100'];
 
     function applyTabState(tab) {
         chartTabs.forEach(btn => {
             const isActive = btn.dataset.chartTab === tab;
             btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
-            activeTabClasses.forEach(cls => btn.classList.toggle(cls, isActive));
-            inactiveTabClasses.forEach(cls => btn.classList.toggle(cls, !isActive));
         });
     }
 
@@ -696,8 +734,8 @@ let envChart = null;
             const isActive = target && document.fullscreenElement === target;
             btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
             btn.classList.toggle('ring-4', isActive);
-            btn.classList.toggle('ring-indigo-200', isActive);
-            btn.classList.toggle('dark:ring-indigo-400', isActive);
+            btn.classList.toggle('ring-cyan-200', isActive);
+            btn.classList.toggle('dark:ring-cyan-400', isActive);
             btn.classList.toggle('shadow-lg', isActive);
         });
         requestAnimationFrame(() => {
@@ -714,7 +752,8 @@ let envChart = null;
     function updateChartsTheme() {
         const isDark = document.documentElement.classList.contains('dark');
         const textColor = isDark ? '#F9FAFB' : '#1F2937';
-        const gridColor = isDark ? '#374151' : '#e5e7eb';
+        const gridColor = isDark ? 'rgba(148, 163, 184, 0.14)' : 'rgba(15, 23, 42, 0.09)';
+        const mutedColor = isDark ? '#91A2B8' : '#64748B';
         const charts = [safeChart];
         if (envChart) charts.push(envChart);
         charts.forEach(c => {
@@ -732,7 +771,8 @@ let envChart = null;
                     plotBackgroundColor: 'transparent',
                     resetZoomButton: { theme: resetZoomTheme }
                 },
-                title: { style: { color: textColor } },
+                title: { style: { color: textColor, fontSize: '15px', fontWeight: '650' } },
+                subtitle: { style: { color: mutedColor, fontSize: '11px' } },
                 xAxis: { labels: { style: { color: textColor } }, gridLineColor: gridColor, lineColor: textColor },
                 yAxis: { labels: { style: { color: textColor } }, title: { style: { color: textColor } }, gridLineColor: gridColor, lineColor: textColor },
                 legend: { itemStyle: { color: textColor } }
@@ -750,9 +790,20 @@ let envChart = null;
 
     modeToggle.addEventListener('click', () => {
         document.documentElement.classList.toggle('dark');
+        localStorage.setItem('color-theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
         updateModeIcon();
         updateChartsTheme();
     });
+
+    const utcClock = document.getElementById('utcClock');
+    function updateUtcClock() {
+        if (!utcClock) return;
+        utcClock.textContent = new Intl.DateTimeFormat('en-GB', {
+            timeZone: 'UTC', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+        }).format(new Date()) + ' · System clock';
+    }
+    updateUtcClock();
+    window.setInterval(updateUtcClock, 1000);
 
     updateModeIcon();
     updateChartsTheme();
