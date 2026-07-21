@@ -97,10 +97,10 @@ $last7SafeHoursDisplay = $last7SafeHours !== null ? number_format($last7SafeHour
     <script src="https://code.highcharts.com/highcharts.js"></script>
     <script src="https://code.highcharts.com/modules/accessibility.js"></script>
 </head>
-<body class="observatory-shell antialiased">
+<body class="observatory-shell dashboard-density antialiased">
     <a href="#main-content" class="obs-skip-link">Skip to live observatory data</a>
     <div class="obs-frame">
-        <header class="mb-8 space-y-4">
+        <header class="obs-dashboard-header">
             <div class="obs-topbar">
                     <a href="index.php" class="obs-brand">
                         <img src="logo.svg" alt="Observatory telescope logo" class="obs-brand-mark" />
@@ -118,81 +118,69 @@ $last7SafeHoursDisplay = $last7SafeHours !== null ? number_format($last7SafeHour
                         </button>
                     </div>
             </div>
-            <section id="heroCard" class="obs-hero">
-            <div class="obs-hero-grid">
-                <div>
-                    <p class="obs-kicker mb-5 text-cyan-300">Live observatory intelligence · 51.81° N</p>
-                    <h1 class="obs-hero-title">Read the atmosphere.<br>Catch the clear window.</h1>
-                    <p class="obs-hero-copy">A live view of the sky above Wheathampstead—combining local weather instruments, roof-camera imagery, and historical observing conditions in one precise workspace.</p>
+            <section id="heroCard" class="obs-hero obs-hero--compact">
+                <div class="obs-compact-hero-copy">
+                    <p class="obs-kicker text-cyan-300">Live site status · 51.81° N</p>
+                    <h1>Observatory conditions</h1>
+                    <p>Nine local instruments, camera imagery, and observing history in one operational view.</p>
                 </div>
-                <div class="obs-hero-metric">
-                    <p class="obs-data-label text-cyan-300">Clear-sky yield · Rolling 7d</p>
-                    <p class="obs-metric-value">
-                        <?= htmlspecialchars($last7SafeHoursDisplay, ENT_QUOTES, 'UTF-8'); ?><?php if ($last7SafeHours !== null): ?><span class="obs-metric-unit">hours</span><?php endif; ?>
-                    </p>
-                    <p class="mt-3 text-sm leading-6 text-slate-400">Accumulated time when local instruments reported safe observing conditions.</p>
-                    <a href="clear.php" class="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-cyan-300 transition hover:text-cyan-100">Open sky archive <span aria-hidden="true">→</span></a>
+                <div class="obs-compact-system-grid" aria-label="Observatory system overview">
+                    <div><span class="obs-data-label text-cyan-300">CAM-01</span><strong>Roof camera</strong></div>
+                    <div><span class="obs-data-label text-violet-300">UTC</span><strong id="utcClock">Synchronising</strong></div>
                 </div>
-            </div>
-            <div class="obs-hero-footer" aria-label="Observatory system overview">
-                <div class="obs-hero-footer-item"><span class="obs-signal-dot obs-signal-dot--live"></span><span>Telemetry · MQTT stream</span></div>
-                <div class="obs-hero-footer-item"><span class="font-mono text-cyan-300">CAM-01</span><span>Roof all-sky camera</span></div>
-                <div class="obs-hero-footer-item"><span class="font-mono text-violet-300">UTC</span><span id="utcClock">Synchronising clock</span></div>
-            </div>
+                <a href="clear.php" class="obs-compact-metric" aria-label="Open clear-sky archive">
+                    <span class="obs-data-label text-cyan-300">Clear-sky yield · 7d</span>
+                    <strong><?= htmlspecialchars($last7SafeHoursDisplay, ENT_QUOTES, 'UTF-8'); ?><?php if ($last7SafeHours !== null): ?><small>hours</small><?php endif; ?></strong>
+                    <span>Open archive →</span>
+                </a>
             </section>
         </header>
         <main id="main-content">
-        <section class="obs-section-head">
-            <div><p class="obs-kicker">Atmospheric array · Live</p><h2 class="obs-section-title">Current instrument readings</h2></div>
-            <p class="obs-section-note"><span class="font-mono"><?= count($topics); ?> channels</span> · Values update as packets arrive</p>
-        </section>
-        <div id="cards" class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 auto-rows-fr"></div>
-        <div class="mt-8 grid grid-cols-1 gap-4 lg:grid-cols-[1.08fr_1fr] lg:items-stretch">
-            <section id="skyImageContainer" class="obs-panel relative flex flex-col">
-                <div class="flex items-center justify-between gap-3">
-                    <div><p class="obs-data-label">CAM-01 · Roof array</p><h2 class="mt-1 text-lg font-semibold">All-sky camera</h2></div>
-                    <button type="button" data-target="skyImageContainer" class="fullscreen-toggle obs-icon-button" aria-label="Toggle full screen for sky image">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 3H5a2 2 0 0 0-2 2v3m0 8v3a2 2 0 0 0 2 2h3m8 0h3a2 2 0 0 0 2-2v-3m0-8V5a2 2 0 0 0-2-2h-3" />
-                        </svg>
-                    </button>
-                </div>
-                <div class="obs-camera-well mt-4 flex flex-1 items-center justify-center p-2">
-                    <div id="skyImagePlaceholder" class="obs-camera-placeholder" aria-live="polite">
-                        <span class="obs-reticle" aria-hidden="true"></span>
-                        <span class="obs-data-label text-slate-500">Awaiting next camera frame</span>
+            <div class="obs-dashboard-grid">
+                <section class="obs-telemetry-section" aria-labelledby="telemetryHeading">
+                    <div class="obs-compact-section-head">
+                        <div><p class="obs-kicker">Atmospheric array · Live</p><h2 id="telemetryHeading">Instrument readings</h2></div>
+                        <p><span class="font-mono"><?= count($topics); ?> channels</span> · Three-hour trends</p>
                     </div>
-                    <img id="skyImage" alt="Latest image from the observatory roof camera" class="relative z-10 max-h-full w-full object-contain" />
-                </div>
-                <div class="mt-4 flex items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400"><span>Updated continuously via MQTT</span><span class="font-mono uppercase tracking-wider">JPEG · LIVE</span></div>
-            </section>
-            <section id="chartHub" class="obs-panel relative flex flex-col">
-                <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                        <p class="obs-data-label">ANL-02 · Signal analysis</p>
-                        <div role="tablist" aria-label="Chart selection" class="obs-segmented mt-2">
-                        <button type="button" data-chart-tab="safe" class="chart-tab obs-tab" role="tab" aria-selected="true">Clear-sky history</button>
-                        <button type="button" data-chart-tab="realtime" class="chart-tab obs-tab" role="tab" aria-selected="false">Live environment</button>
+                    <div id="cards" class="obs-sensor-matrix"></div>
+                </section>
+                <aside class="obs-visual-stack" aria-label="Camera and analysis">
+                    <section id="skyImageContainer" class="obs-panel obs-panel--compact">
+                        <div class="obs-compact-panel-head">
+                            <div><p class="obs-data-label">CAM-01 · Roof array</p><h2>All-sky camera</h2></div>
+                            <button type="button" data-target="skyImageContainer" class="fullscreen-toggle obs-icon-button" aria-label="Toggle full screen for sky image">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M8 3H5a2 2 0 0 0-2 2v3m0 8v3a2 2 0 0 0 2 2h3m8 0h3a2 2 0 0 0 2-2v-3m0-8V5a2 2 0 0 0-2-2h-3" /></svg>
+                            </button>
                         </div>
-                    </div>
-                    <button type="button" data-target="chartHub" class="fullscreen-toggle obs-icon-button" aria-label="Toggle full screen for charts">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 3H5a2 2 0 0 0-2 2v3m0 8v3a2 2 0 0 0 2 2h3m8 0h3a2 2 0 0 0 2-2v-3m0-8V5a2 2 0 0 0-2-2h-3" />
-                        </svg>
-                    </button>
-                </div>
-                <div id="chartDisplay" class="obs-chart-well relative mt-4 flex-1 p-2 min-h-[22rem]">
-                    <div id="safeChart" class="absolute inset-0"></div>
-                    <div id="envChart" class="absolute inset-0 hidden"></div>
-                </div>
-                <p class="mt-4 text-xs leading-5 text-slate-500 dark:text-slate-400">Thirty-day observing conditions and live environmental signals share a common analysis surface.</p>
-            </section>
-        </div>
+                        <div class="obs-camera-well obs-camera-well--compact">
+                            <div id="skyImagePlaceholder" class="obs-camera-placeholder" aria-live="polite">
+                                <span class="obs-reticle" aria-hidden="true"></span>
+                                <span class="obs-data-label text-slate-500">Awaiting camera frame</span>
+                            </div>
+                            <img id="skyImage" alt="Latest image from the observatory roof camera" class="relative z-10 max-h-full w-full object-contain" hidden />
+                        </div>
+                    </section>
+                    <section id="chartHub" class="obs-panel obs-panel--compact">
+                        <div class="obs-compact-panel-head obs-analysis-head">
+                            <div><p class="obs-data-label">ANL-02 · Signal analysis</p><h2>Conditions history</h2></div>
+                            <div class="flex items-center gap-2">
+                                <div role="tablist" aria-label="Chart selection" class="obs-segmented obs-segmented--compact">
+                                    <button type="button" data-chart-tab="safe" class="chart-tab obs-tab" role="tab" aria-selected="true">30d</button>
+                                    <button type="button" data-chart-tab="realtime" class="chart-tab obs-tab" role="tab" aria-selected="false">Live</button>
+                                </div>
+                                <button type="button" data-target="chartHub" class="fullscreen-toggle obs-icon-button" aria-label="Toggle full screen for charts">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M8 3H5a2 2 0 0 0-2 2v3m0 8v3a2 2 0 0 0 2 2h3m8 0h3a2 2 0 0 0 2-2v-3m0-8V5a2 2 0 0 0-2-2h-3" /></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div id="chartDisplay" class="obs-chart-well obs-chart-display--compact">
+                            <div id="safeChart" class="absolute inset-0"></div>
+                            <div id="envChart" class="absolute inset-0 hidden"></div>
+                        </div>
+                    </section>
+                </aside>
+            </div>
         </main>
-        <footer class="mt-10 flex flex-wrap items-center justify-between gap-3 border-t border-slate-400/20 py-6 text-xs text-slate-500 dark:text-slate-500">
-            <span class="font-mono uppercase tracking-[0.15em]">WAC · Wheathampstead, UK</span>
-            <span>Local instruments · Local sky intelligence</span>
-        </footer>
     </div>
 
     <script>
@@ -423,39 +411,35 @@ let envChart = null;
         const card = document.createElement('div');
 
         card.id = 'card-' + sanitize(name);
-        card.className = 'obs-readout-card flex h-full flex-col';
+        card.className = 'obs-readout-card obs-readout-card--compact';
         const icon = icons[name] || 'SEN';
         const label = escapeHtml(name.replace(/[_-]/g, ' '));
         const unitMarkup = cfg.unit ? `<span class="obs-readout-unit">${escapeHtml(cfg.unit)}</span>` : '';
+        const threshold = parseFloat(cfg.green);
+        const condition = typeof cfg.condition === 'string' ? cfg.condition.toLowerCase() : '';
+        const targetText = Number.isFinite(threshold) && (condition === 'above' || condition === 'below')
+            ? `${condition === 'above' ? 'Target above' : 'Target below'} ${escapeHtml(cfg.green)}${cfg.unit ? ' ' + escapeHtml(cfg.unit) : ''}`
+            : 'Three-hour trend';
         card.innerHTML = `
-            <div class="relative flex h-full flex-col justify-between gap-5">
-                <div class="flex flex-wrap items-start justify-between gap-3">
-                    <div class="flex items-center gap-3">
-                        <div class="obs-instrument-mark"><span class="obs-instrument-code">${icon}</span></div>
-                        <div class="flex flex-col">
-                            <h3 class="text-base font-semibold capitalize text-slate-900 dark:text-slate-100">${label}</h3>
-                            <p class="obs-data-label mt-1">Instrument channel</p>
+            <div class="obs-compact-card-inner">
+                <div class="obs-compact-card-head">
+                    <div class="flex min-w-0 items-center gap-2">
+                        <div class="obs-instrument-mark obs-instrument-mark--compact"><span class="obs-instrument-code">${icon}</span></div>
+                        <div class="min-w-0">
+                            <h3 class="truncate text-sm font-semibold capitalize text-slate-900 dark:text-slate-100">${label}</h3>
+                            <p class="obs-compact-target">${targetText}</p>
                         </div>
                     </div>
+                    <a href="historical.php?topic=${encodeURIComponent(name)}" class="obs-history-icon" aria-label="View ${label} history">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3v18h18M6 15l4-4 3 3 7-7" /></svg>
+                    </a>
+                </div>
+                <div class="obs-compact-reading">
+                    <p class="obs-readout-value text-slate-900 dark:text-white"><span id="${id}">--</span>${unitMarkup}</p>
                     <span id="status-${sanitize(name)}" class="${statusBaseClasses} border-slate-300/60 bg-slate-500/5 text-slate-500 dark:border-slate-700 dark:text-slate-400">Awaiting</span>
                 </div>
-                <div class="flex flex-col gap-4">
-                    <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-                        <p class="obs-readout-value text-slate-900 dark:text-white">
-                            <span id="${id}">--</span>${unitMarkup}
-                        </p>
-                        <div class="obs-chart-well relative h-24 w-full sm:h-28 sm:w-auto sm:min-w-[10rem]">
-                            <div id="chart-${sanitize(name)}" class="absolute inset-0"></div>
-                        </div>
-                    </div>
-                    <div class="flex flex-wrap items-center gap-2">
-                        <a href="historical.php?topic=${encodeURIComponent(name)}" class="obs-button" aria-label="View ${label} history">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 3v18h18M6 15l4-4 3 3 7-7" />
-                            </svg>
-                            Open history
-                        </a>
-                    </div>
+                <div class="obs-chart-well obs-mini-chart-well">
+                    <div id="chart-${sanitize(name)}" class="absolute inset-0"></div>
                 </div>
             </div>
         `;
@@ -511,7 +495,10 @@ let envChart = null;
             if (skyImageUrl) URL.revokeObjectURL(skyImageUrl);
             const blob = new Blob([message], { type: 'image/jpeg' });
             skyImageUrl = URL.createObjectURL(blob);
-            img.onload = () => { if (placeholder) placeholder.hidden = true; };
+            img.onload = () => {
+                img.hidden = false;
+                if (placeholder) placeholder.hidden = true;
+            };
             img.src = skyImageUrl;
             return;
         }

@@ -49,3 +49,4 @@ Design decisions added after this file should be appended here for future refere
 40. Historical pages fetch data asynchronously via a JSON endpoint to handle large result sets without exhausting server memory.
 41. The interface uses a professional observatory-console visual system: deep orbital backgrounds, restrained cyan and violet telemetry accents, technical labels, translucent instrument panels, and consistent styles across dashboard, archive, history, and wall-display pages.
 42. Decorative space visuals are implemented with lightweight CSS and SVG so the site remains responsive and does not depend on large generated image assets.
+43. The main dashboard prioritises operational density over landing-page presentation: on standard desktop viewports, the compact status strip, nine-channel telemetry matrix, camera, and analysis panel should all remain visible without vertical scrolling.

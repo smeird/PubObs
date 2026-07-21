@@ -646,6 +646,384 @@ body.observatory-shell::after {
     padding: 2rem;
 }
 
+/* Dense dashboard layout: optimised to keep the full observatory state in one desktop viewport. */
+.dashboard-density .obs-frame {
+    width: min(100% - 1rem, 96rem);
+    padding-block: 0.5rem;
+}
+
+.dashboard-density .obs-topbar {
+    min-height: 3.35rem;
+    border-radius: 0.75rem;
+    padding: 0.4rem 0.65rem;
+}
+
+.dashboard-density .obs-brand-mark {
+    width: 2.25rem;
+    height: 2.25rem;
+}
+
+.dashboard-density .obs-brand-title {
+    font-size: 0.82rem;
+}
+
+.dashboard-density .obs-nav-link,
+.dashboard-density .obs-icon-button {
+    min-height: 2.15rem;
+}
+
+.dashboard-density .obs-nav-link {
+    padding: 0.55rem 0.7rem;
+}
+
+.dashboard-density .obs-icon-button {
+    width: 2.15rem;
+}
+
+.dashboard-density .obs-status-pill {
+    min-height: 2.15rem;
+    padding: 0.35rem 0.65rem;
+    font-size: 0.6rem;
+}
+
+.obs-dashboard-header {
+    display: grid;
+    gap: 0.6rem;
+    margin-bottom: 0.65rem;
+}
+
+.obs-hero--compact {
+    display: grid;
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr) auto minmax(11rem, 0.28fr);
+    gap: 1rem;
+    align-items: center;
+    border-radius: 0.9rem;
+    padding: 0.8rem 1rem;
+    box-shadow: 0 18px 45px rgba(2, 6, 23, 0.2);
+}
+
+.obs-hero--compact::before {
+    background-size: 32px 32px;
+}
+
+.obs-hero--compact::after {
+    top: -8rem;
+    right: 7rem;
+    width: 18rem;
+    height: 18rem;
+    box-shadow: 0 0 0 3rem rgba(103, 232, 249, 0.018);
+}
+
+.obs-compact-hero-copy,
+.obs-compact-system-grid,
+.obs-compact-metric {
+    position: relative;
+    z-index: 1;
+}
+
+.obs-compact-hero-copy h1 {
+    margin: 0.18rem 0 0;
+    font-size: clamp(1.25rem, 2vw, 1.7rem);
+    font-weight: 680;
+    letter-spacing: -0.035em;
+    line-height: 1.1;
+}
+
+.obs-compact-hero-copy > p:last-child {
+    margin: 0.3rem 0 0;
+    color: #91a2b8;
+    font-size: 0.72rem;
+    line-height: 1.45;
+}
+
+.obs-compact-system-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(7.5rem, 1fr));
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    border-radius: 0.65rem;
+    background: rgba(2, 8, 23, 0.22);
+}
+
+.obs-compact-system-grid > div {
+    display: grid;
+    gap: 0.15rem;
+    padding: 0.55rem 0.7rem;
+}
+
+.obs-compact-system-grid > div + div {
+    border-left: 1px solid rgba(148, 163, 184, 0.16);
+}
+
+.obs-compact-system-grid strong {
+    color: #c1cedd;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.66rem;
+    font-weight: 650;
+    white-space: nowrap;
+}
+
+.obs-compact-metric {
+    display: grid;
+    gap: 0.18rem;
+    border-left: 1px solid rgba(103, 232, 249, 0.25);
+    padding: 0.15rem 0 0.15rem 1rem;
+    color: #f8fafc;
+    text-decoration: none;
+}
+
+.obs-compact-metric strong {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 1.75rem;
+    font-weight: 650;
+    letter-spacing: -0.06em;
+    line-height: 1;
+}
+
+.obs-compact-metric small {
+    margin-left: 0.28rem;
+    color: #91a2b8;
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+    font-size: 0.62rem;
+    letter-spacing: 0;
+}
+
+.obs-compact-metric > span:last-child {
+    color: #67e8f9;
+    font-size: 0.66rem;
+    font-weight: 700;
+}
+
+.obs-dashboard-grid {
+    display: grid;
+    gap: 0.65rem;
+    align-items: stretch;
+}
+
+.obs-telemetry-section {
+    min-width: 0;
+}
+
+.obs-compact-section-head,
+.obs-compact-panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.obs-compact-section-head {
+    min-height: 2.45rem;
+    margin-bottom: 0.45rem;
+}
+
+.obs-compact-section-head h2,
+.obs-compact-panel-head h2 {
+    margin: 0.1rem 0 0;
+    color: var(--obs-text);
+    font-size: 0.92rem;
+    font-weight: 680;
+    letter-spacing: -0.02em;
+}
+
+.obs-compact-section-head > p {
+    color: var(--obs-muted);
+    font-size: 0.68rem;
+}
+
+.obs-sensor-matrix {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+}
+
+.obs-readout-card--compact {
+    min-height: 0;
+    border-radius: 0.68rem;
+    padding: 0.55rem 0.65rem;
+}
+
+.obs-readout-card--compact::before {
+    left: 0.7rem;
+    width: 2.25rem;
+}
+
+.obs-readout-card--compact:hover {
+    transform: translateY(-1px);
+}
+
+.obs-compact-card-inner {
+    display: grid;
+    height: 100%;
+    min-height: 6.55rem;
+    grid-template-rows: auto auto minmax(1.65rem, 1fr);
+    gap: 0.28rem;
+}
+
+.obs-compact-card-head,
+.obs-compact-reading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.45rem;
+}
+
+.obs-instrument-mark--compact {
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 0.48rem;
+}
+
+.obs-instrument-mark--compact .obs-instrument-code {
+    font-size: 0.5rem;
+}
+
+.obs-compact-target {
+    overflow: hidden;
+    margin-top: 0.05rem;
+    color: var(--obs-faint);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.5rem;
+    letter-spacing: 0.03em;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.obs-history-icon {
+    display: grid;
+    width: 1.65rem;
+    height: 1.65rem;
+    flex: 0 0 auto;
+    place-items: center;
+    border: 1px solid var(--obs-border);
+    border-radius: 0.45rem;
+    color: var(--obs-muted);
+    text-decoration: none;
+    transition: border-color 160ms ease, color 160ms ease, background 160ms ease;
+}
+
+.obs-history-icon:hover,
+.obs-history-icon:focus-visible {
+    border-color: var(--obs-border-strong);
+    background: rgba(34, 211, 238, 0.07);
+    color: var(--obs-cyan);
+}
+
+.obs-readout-card--compact .obs-readout-value {
+    font-size: clamp(1.45rem, 2vw, 1.85rem);
+}
+
+.obs-readout-card--compact .obs-readout-unit {
+    margin-left: 0.18rem;
+    font-size: 0.63rem;
+}
+
+.obs-readout-card--compact [id^="status-"] {
+    min-height: 1.28rem;
+    padding: 0.18rem 0.38rem;
+    font-size: 0.48rem;
+    letter-spacing: 0.08em;
+}
+
+.obs-mini-chart-well {
+    min-height: 0;
+    border-radius: 0.4rem;
+    background-size: 18px 18px;
+}
+
+.obs-visual-stack {
+    display: grid;
+    min-width: 0;
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem;
+}
+
+.obs-panel--compact {
+    display: flex;
+    min-height: 0;
+    flex-direction: column;
+    border-radius: 0.7rem;
+    padding: 0.6rem 0.7rem;
+}
+
+.obs-panel--compact::before {
+    left: 0.75rem;
+    width: 2.4rem;
+}
+
+.obs-panel--compact .obs-icon-button {
+    width: 1.8rem;
+    min-height: 1.8rem;
+}
+
+.obs-camera-well--compact,
+.obs-chart-display--compact {
+    min-height: 11rem;
+    flex: 1;
+    margin-top: 0.42rem;
+    border-radius: 0.48rem;
+}
+
+.obs-camera-well--compact {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.25rem;
+}
+
+.obs-camera-well--compact .obs-camera-placeholder {
+    gap: 0.35rem;
+    padding: 0.5rem;
+}
+
+.obs-camera-well--compact .obs-reticle {
+    width: 3.4rem;
+    height: 3.4rem;
+}
+
+.obs-camera-well--compact .obs-reticle::before { width: 4rem; }
+.obs-camera-well--compact .obs-reticle::after { height: 4rem; }
+
+.obs-chart-display--compact {
+    position: relative;
+    overflow: hidden;
+    padding: 0.15rem;
+}
+
+.obs-segmented--compact {
+    gap: 0.1rem;
+    padding: 0.12rem;
+}
+
+.obs-segmented--compact .obs-tab {
+    padding: 0.36rem 0.48rem;
+    font-size: 0.58rem;
+}
+
+@media (min-width: 640px) {
+    .obs-sensor-matrix {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 900px) {
+    .obs-sensor-matrix {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 960px) {
+    .obs-dashboard-grid {
+        grid-template-columns: minmax(0, 1.75fr) minmax(19rem, 0.85fr);
+    }
+
+    .obs-camera-well--compact,
+    .obs-chart-display--compact {
+        min-height: 0;
+    }
+}
+
 .obs-page-hero {
     position: relative;
     overflow: hidden;
@@ -689,6 +1067,23 @@ body.observatory-shell::after {
     .obs-hero-metric {
         max-width: 22rem;
     }
+
+    .obs-hero--compact {
+        grid-template-columns: 1fr;
+        align-items: start;
+    }
+
+    .obs-compact-metric {
+        grid-template-columns: auto auto 1fr;
+        align-items: end;
+        border-top: 1px solid rgba(103, 232, 249, 0.25);
+        border-left: 0;
+        padding: 0.65rem 0 0;
+    }
+
+    .obs-compact-metric > span:last-child {
+        justify-self: end;
+    }
 }
 
 @media (max-width: 680px) {
@@ -704,6 +1099,10 @@ body.observatory-shell::after {
 
     .obs-brand-kicker,
     .obs-nav-label {
+        display: none;
+    }
+
+    .dashboard-density .obs-brand-copy {
         display: none;
     }
 

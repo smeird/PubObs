@@ -16,6 +16,7 @@ Website that publicly shows observatory sensor data. The site displays live and 
 - Clear page shows safe observing hours aggregated by month for a selected year
 - Shared observatory-console design across the dashboard, archive, history, and wall-display pages
 - Lightweight CSS/SVG orbital visuals with no large decorative image downloads
+- Single-viewport desktop dashboard with a compact status strip, 3×3 telemetry matrix, and side-by-side camera and analysis stack
 
 ## Sensor Data Tables
 
