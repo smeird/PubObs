@@ -14,11 +14,8 @@ $sqmUnit = $topics['sqm']['unit'] ?? '';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HA Display | Wheathampstead AstroPhotography Conditions</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="tailwind.generated.css">
     <link rel="stylesheet" href="observatory.css">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = { darkMode: 'class' };
-    </script>
 </head>
 <body class="observatory-shell h-full text-slate-100">
     <main class="relative z-10 flex h-full min-h-screen flex-col items-center justify-center gap-9 px-8 py-8 text-center">
@@ -80,7 +77,8 @@ $sqmUnit = $topics['sqm']['unit'] ?? '';
                 return;
             }
 
-            const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
+            const isLocalBroker = brokerHost === window.location.hostname || brokerHost === 'localhost' || brokerHost === '127.0.0.1';
+            const protocol = location.protocol === 'https:' || !isLocalBroker ? 'wss' : 'ws';
             client = mqtt.connect(`${protocol}://${brokerHost}:${port}`, {
                 reconnectPeriod: 0,
                 clientId: 'ha-display-' + Math.random()

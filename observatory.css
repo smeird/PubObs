@@ -313,6 +313,14 @@ body.observatory-shell::after {
         linear-gradient(135deg, #06131a 0%, #08221f 55%, #07131d 100%);
 }
 
+.obs-hero--unsafe {
+    border-color: rgba(251, 113, 133, 0.35);
+    background:
+        radial-gradient(circle at 78% 10%, rgba(190, 24, 93, 0.24), transparent 25rem),
+        radial-gradient(circle at 15% 105%, rgba(8, 145, 178, 0.18), transparent 28rem),
+        linear-gradient(135deg, #160b18 0%, #1b1022 55%, #0d111f 100%);
+}
+
 .obs-hero-grid {
     position: relative;
     z-index: 1;
@@ -669,7 +677,7 @@ body.observatory-shell::after {
 
 .dashboard-density .obs-nav-link,
 .dashboard-density .obs-icon-button {
-    min-height: 2.15rem;
+    min-height: 2.5rem;
 }
 
 .dashboard-density .obs-nav-link {
@@ -677,7 +685,7 @@ body.observatory-shell::after {
 }
 
 .dashboard-density .obs-icon-button {
-    width: 2.15rem;
+    width: 2.5rem;
 }
 
 .dashboard-density .obs-status-pill {
@@ -695,7 +703,7 @@ body.observatory-shell::after {
 .obs-hero--compact {
     display: grid;
     min-height: 0;
-    grid-template-columns: minmax(0, 1fr) auto minmax(11rem, 0.28fr);
+    grid-template-columns: minmax(17rem, 1fr) minmax(21rem, auto) minmax(12.5rem, 0.34fr);
     gap: 1rem;
     align-items: center;
     border-radius: 0.9rem;
@@ -717,7 +725,7 @@ body.observatory-shell::after {
 
 .obs-compact-hero-copy,
 .obs-compact-system-grid,
-.obs-compact-metric {
+.obs-compact-safety {
     position: relative;
     z-index: 1;
 }
@@ -739,20 +747,33 @@ body.observatory-shell::after {
 
 .obs-compact-system-grid {
     display: grid;
-    grid-template-columns: repeat(2, minmax(7.5rem, 1fr));
+    grid-template-columns: repeat(3, minmax(6.5rem, 1fr));
     border: 1px solid rgba(148, 163, 184, 0.16);
     border-radius: 0.65rem;
     background: rgba(2, 8, 23, 0.22);
 }
 
-.obs-compact-system-grid > div {
+.obs-compact-system-grid > div,
+.obs-compact-system-link {
     display: grid;
     gap: 0.15rem;
     padding: 0.55rem 0.7rem;
 }
 
-.obs-compact-system-grid > div + div {
+.obs-compact-system-grid > * + * {
     border-left: 1px solid rgba(148, 163, 184, 0.16);
+}
+
+.obs-compact-system-link {
+    color: inherit;
+    text-decoration: none;
+    transition: background 160ms ease;
+}
+
+.obs-compact-system-link:hover,
+.obs-compact-system-link:focus-visible {
+    background: rgba(34, 211, 238, 0.08);
+    outline: none;
 }
 
 .obs-compact-system-grid strong {
@@ -763,41 +784,44 @@ body.observatory-shell::after {
     white-space: nowrap;
 }
 
-.obs-compact-metric {
+.obs-compact-safety {
     display: grid;
     gap: 0.18rem;
     border-left: 1px solid rgba(103, 232, 249, 0.25);
-    padding: 0.15rem 0 0.15rem 1rem;
+    padding: 0.18rem 0 0.18rem 1rem;
     color: #f8fafc;
-    text-decoration: none;
 }
 
-.obs-compact-metric strong {
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    font-size: 1.75rem;
-    font-weight: 650;
-    letter-spacing: -0.06em;
+.obs-compact-safety strong {
+    font-size: 1.08rem;
+    font-weight: 750;
+    letter-spacing: -0.025em;
     line-height: 1;
 }
 
-.obs-compact-metric small {
-    margin-left: 0.28rem;
+.obs-compact-safety > span:last-child {
+    overflow: hidden;
     color: #91a2b8;
-    font-family: Inter, ui-sans-serif, system-ui, sans-serif;
-    font-size: 0.62rem;
-    letter-spacing: 0;
+    font-size: 0.6rem;
+    font-weight: 650;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
-.obs-compact-metric > span:last-child {
-    color: #67e8f9;
-    font-size: 0.66rem;
-    font-weight: 700;
+.obs-compact-safety[data-state="safe"] strong,
+.obs-compact-safety[data-state="safe"] .obs-data-label {
+    color: #6ee7b7;
+}
+
+.obs-compact-safety[data-state="unsafe"] strong,
+.obs-compact-safety[data-state="unsafe"] .obs-data-label {
+    color: #fda4af;
 }
 
 .obs-dashboard-grid {
     display: grid;
     gap: 0.65rem;
-    align-items: stretch;
+    align-items: start;
 }
 
 .obs-telemetry-section {
@@ -892,8 +916,8 @@ body.observatory-shell::after {
 
 .obs-history-icon {
     display: grid;
-    width: 1.65rem;
-    height: 1.65rem;
+    width: 2.5rem;
+    height: 2.5rem;
     flex: 0 0 auto;
     place-items: center;
     border: 1px solid var(--obs-border);
@@ -953,8 +977,8 @@ body.observatory-shell::after {
 }
 
 .obs-panel--compact .obs-icon-button {
-    width: 1.8rem;
-    min-height: 1.8rem;
+    width: 2.5rem;
+    min-height: 2.5rem;
 }
 
 .obs-camera-well--compact,
@@ -970,6 +994,13 @@ body.observatory-shell::after {
     align-items: center;
     justify-content: center;
     padding: 0.25rem;
+}
+
+.obs-camera-well--compact #skyImage {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    object-fit: contain;
 }
 
 .obs-camera-well--compact .obs-camera-placeholder {
@@ -997,7 +1028,9 @@ body.observatory-shell::after {
 }
 
 .obs-segmented--compact .obs-tab {
-    padding: 0.36rem 0.48rem;
+    min-width: 2.5rem;
+    min-height: 2.5rem;
+    padding: 0.42rem 0.58rem;
     font-size: 0.58rem;
 }
 
@@ -1021,6 +1054,11 @@ body.observatory-shell::after {
     .obs-camera-well--compact,
     .obs-chart-display--compact {
         min-height: 0;
+    }
+
+    .obs-visual-stack {
+        height: 27.25rem;
+        grid-template-rows: minmax(0, 1.25fr) minmax(0, 1fr);
     }
 }
 
@@ -1073,7 +1111,7 @@ body.observatory-shell::after {
         align-items: start;
     }
 
-    .obs-compact-metric {
+    .obs-compact-safety {
         grid-template-columns: auto auto 1fr;
         align-items: end;
         border-top: 1px solid rgba(103, 232, 249, 0.25);
@@ -1081,7 +1119,7 @@ body.observatory-shell::after {
         padding: 0.65rem 0 0;
     }
 
-    .obs-compact-metric > span:last-child {
+    .obs-compact-safety > span:last-child {
         justify-self: end;
     }
 }

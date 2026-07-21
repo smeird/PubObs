@@ -79,13 +79,9 @@ $last7SafeHoursDisplay = $last7SafeHours !== null ? number_format($last7SafeHour
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Wheathampstead AstroPhotography Conditions</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="tailwind.generated.css">
     <link rel="stylesheet" href="observatory.css">
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        tailwind.config = {
-            darkMode: 'class',
-        }
         try {
             const storedTheme = localStorage.getItem('color-theme');
             if (storedTheme === 'dark' || (!storedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
@@ -127,12 +123,16 @@ $last7SafeHoursDisplay = $last7SafeHours !== null ? number_format($last7SafeHour
                 <div class="obs-compact-system-grid" aria-label="Observatory system overview">
                     <div><span class="obs-data-label text-cyan-300">CAM-01</span><strong>Roof camera</strong></div>
                     <div><span class="obs-data-label text-violet-300">UTC</span><strong id="utcClock">Synchronising</strong></div>
+                    <a href="clear.php" class="obs-compact-system-link" aria-label="Open clear-sky archive">
+                        <span class="obs-data-label text-cyan-300">Clear sky · 7d</span>
+                        <strong><?= htmlspecialchars($last7SafeHoursDisplay, ENT_QUOTES, 'UTF-8'); ?><?php if ($last7SafeHours !== null): ?> h<?php endif; ?></strong>
+                    </a>
                 </div>
-                <a href="clear.php" class="obs-compact-metric" aria-label="Open clear-sky archive">
-                    <span class="obs-data-label text-cyan-300">Clear-sky yield · 7d</span>
-                    <strong><?= htmlspecialchars($last7SafeHoursDisplay, ENT_QUOTES, 'UTF-8'); ?><?php if ($last7SafeHours !== null): ?><small>hours</small><?php endif; ?></strong>
-                    <span>Open archive →</span>
-                </a>
+                <div id="observingStatus" class="obs-compact-safety" data-state="assessing" role="status" aria-live="polite">
+                    <span class="obs-data-label">Observing state</span>
+                    <strong id="observingStatusLabel">Assessing</strong>
+                    <span id="observingStatusDetail">Awaiting safety sensor</span>
+                </div>
             </section>
         </header>
         <main id="main-content">
@@ -206,11 +206,15 @@ const envSeriesData = envTopicNames.map(() => []);
 let envChart = null;
 
     const heroCard = document.getElementById('heroCard');
-    let heroState = 'default';
+    const observingStatus = document.getElementById('observingStatus');
+    const observingStatusLabel = document.getElementById('observingStatusLabel');
+    const observingStatusDetail = document.getElementById('observingStatusDetail');
+    let heroState = 'assessing';
 
     function setHeroGradient(state) {
         if (!heroCard || state === heroState) return;
         heroCard.classList.toggle('obs-hero--safe', state === 'safe');
+        heroCard.classList.toggle('obs-hero--unsafe', state === 'unsafe');
         heroState = state;
     }
 
@@ -221,11 +225,68 @@ let envChart = null;
         return hasThreshold && (condition === 'above' || condition === 'below');
     });
     const sensorStatus = new Map(thresholdedSensors.map(([name]) => [name, 'unknown']));
+    const safetySensorName = topicEntries.find(([name]) => name.toLowerCase() === 'safe')?.[0] || null;
+
+    const sensorNames = {
+        rain: 'Rain sensor',
+        safe: 'Observing safety',
+        sqm: 'Sky quality',
+        clouds: 'Cloud cover',
+        dewpoint: 'Dew point'
+    };
+
+    function sensorLabel(name) {
+        const label = sensorNames[name.toLowerCase()] || name.replace(/[_-]/g, ' ');
+        return label.replace(/\b\w/g, character => character.toUpperCase());
+    }
+
+    function sensorConditionLabel(name, favorable) {
+        const normalized = name.toLowerCase();
+        if (normalized === 'safe') return favorable ? 'Permitted' : 'Blocked';
+        if (normalized === 'rain') return favorable ? 'Dry' : 'Rain detected';
+        return favorable ? 'Favorable' : 'Attention';
+    }
+
+    function sensorTargetLabel(name, cfg) {
+        const normalized = name.toLowerCase();
+        const threshold = parseFloat(cfg.green);
+        const condition = typeof cfg.condition === 'string' ? cfg.condition.toLowerCase() : '';
+        if (!Number.isFinite(threshold) || (condition !== 'above' && condition !== 'below')) {
+            return 'Three-hour trend';
+        }
+        const direction = condition === 'above' ? 'above' : 'below';
+        const value = `${cfg.green}${cfg.unit ? ` ${cfg.unit}` : ''}`;
+        if (normalized === 'safe') return `Permitted ${direction} ${value}`;
+        if (normalized === 'rain') return `Dry ${direction} ${value}`;
+        return `Target ${direction} ${value}`;
+    }
 
     function updateHeroState() {
-        if (!heroCard || thresholdedSensors.length === 0) return;
-        const allFavorable = thresholdedSensors.every(([name]) => sensorStatus.get(name) === 'favorable');
-        setHeroGradient(allFavorable ? 'safe' : 'default');
+        if (!heroCard || !observingStatus || !observingStatusLabel || !observingStatusDetail) return;
+        const safetyState = safetySensorName ? sensorStatus.get(safetySensorName) : 'unknown';
+        const warnings = thresholdedSensors
+            .filter(([name]) => name !== safetySensorName && sensorStatus.get(name) === 'warning')
+            .map(([name]) => sensorLabel(name));
+        let state = 'assessing';
+        let label = 'Assessing';
+        let detail = 'Awaiting safety sensor';
+
+        if (safetyState === 'favorable') {
+            state = 'safe';
+            label = 'Safe to observe';
+            detail = warnings.length ? `${warnings[0]} needs attention` : 'Safety sensor permits observing';
+        } else if (safetyState === 'warning') {
+            state = 'unsafe';
+            label = 'Unsafe to observe';
+            detail = warnings.length
+                ? `${warnings.slice(0, 2).join(' · ')}${warnings.length > 2 ? ` +${warnings.length - 2}` : ''}`
+                : 'Safety sensor is blocking observation';
+        }
+
+        setHeroGradient(state);
+        observingStatus.dataset.state = state;
+        observingStatusLabel.textContent = label;
+        observingStatusDetail.textContent = detail;
     }
 
     updateHeroState();
@@ -310,6 +371,20 @@ let envChart = null;
             }, false);
         }
         chart.redraw();
+        silenceMiniChart(chart);
+    }
+
+    function silenceMiniChart(chart) {
+        if (!chart || !chart.renderTo) return;
+        chart.renderTo.setAttribute('aria-hidden', 'true');
+        chart.renderTo.removeAttribute('role');
+        chart.renderTo.removeAttribute('aria-label');
+        const svg = chart.renderTo.querySelector('svg');
+        if (svg) {
+            svg.setAttribute('aria-hidden', 'true');
+            svg.removeAttribute('role');
+            svg.removeAttribute('aria-label');
+        }
     }
 
     function renderMiniChart(name, cfg) {
@@ -330,6 +405,7 @@ let envChart = null;
             title: { text: null },
             credits: { enabled: false },
             legend: { enabled: false },
+            accessibility: { enabled: false },
             xAxis: {
                 type: 'datetime',
                 labels: { enabled: false },
@@ -354,13 +430,33 @@ let envChart = null;
             },
             series: [{ data }]
         });
+        container.setAttribute('aria-hidden', 'true');
         applyMiniChartTheme(miniCharts[name]);
+        updateTrendSummary(name, cfg);
     }
 
     function refreshMiniChart(name) {
         const chart = miniCharts[name];
         if (!chart || !chart.series[0]) return;
         chart.series[0].setData((miniChartData[name] || []).slice(), true, false, false);
+        silenceMiniChart(chart);
+        updateTrendSummary(name, topics[name] || {});
+    }
+
+    function updateTrendSummary(name, cfg) {
+        const summary = document.getElementById('trend-' + sanitize(name));
+        if (!summary) return;
+        const points = miniChartData[name] || [];
+        if (points.length < 2) {
+            summary.textContent = 'Three-hour trend unavailable.';
+            return;
+        }
+        const first = points[0][1];
+        const last = points[points.length - 1][1];
+        const tolerance = Math.max(Math.abs(first) * 0.005, 0.01);
+        const direction = Math.abs(last - first) <= tolerance ? 'steady' : (last > first ? 'rising' : 'falling');
+        const unit = cfg.unit ? ` ${cfg.unit}` : '';
+        summary.textContent = `Three-hour trend ${direction}, from ${first.toFixed(2)} to ${last.toFixed(2)}${unit}.`;
     }
 
     function recordMiniChartPoint(name, numericValue) {
@@ -413,13 +509,9 @@ let envChart = null;
         card.id = 'card-' + sanitize(name);
         card.className = 'obs-readout-card obs-readout-card--compact';
         const icon = icons[name] || 'SEN';
-        const label = escapeHtml(name.replace(/[_-]/g, ' '));
+        const label = escapeHtml(sensorLabel(name));
         const unitMarkup = cfg.unit ? `<span class="obs-readout-unit">${escapeHtml(cfg.unit)}</span>` : '';
-        const threshold = parseFloat(cfg.green);
-        const condition = typeof cfg.condition === 'string' ? cfg.condition.toLowerCase() : '';
-        const targetText = Number.isFinite(threshold) && (condition === 'above' || condition === 'below')
-            ? `${condition === 'above' ? 'Target above' : 'Target below'} ${escapeHtml(cfg.green)}${cfg.unit ? ' ' + escapeHtml(cfg.unit) : ''}`
-            : 'Three-hour trend';
+        const targetText = escapeHtml(sensorTargetLabel(name, cfg));
         card.innerHTML = `
             <div class="obs-compact-card-inner">
                 <div class="obs-compact-card-head">
@@ -439,8 +531,9 @@ let envChart = null;
                     <span id="status-${sanitize(name)}" class="${statusBaseClasses} border-slate-300/60 bg-slate-500/5 text-slate-500 dark:border-slate-700 dark:text-slate-400">Awaiting</span>
                 </div>
                 <div class="obs-chart-well obs-mini-chart-well">
-                    <div id="chart-${sanitize(name)}" class="absolute inset-0"></div>
+                    <div id="chart-${sanitize(name)}" class="absolute inset-0" aria-hidden="true"></div>
                 </div>
+                <p id="trend-${sanitize(name)}" class="sr-only">Three-hour trend loading.</p>
             </div>
         `;
         cardsContainer.appendChild(card);
@@ -473,7 +566,8 @@ let envChart = null;
             updateStatus('MQTT · Unavailable', 'bad');
             return;
         }
-        const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
+        const isLocalBroker = brokerHost === window.location.hostname || brokerHost === 'localhost' || brokerHost === '127.0.0.1';
+        const protocol = location.protocol === 'https:' || !isLocalBroker ? 'wss' : 'ws';
         client = mqtt.connect(`${protocol}://${brokerHost}:${port}`, {
             reconnectPeriod: 0,
             clientId: 'webclient-' + Math.random()
@@ -505,7 +599,7 @@ let envChart = null;
         const rawValue = message.toString();
         const numericValue = parseFloat(rawValue);
         const hasNumericValue = Number.isFinite(numericValue);
-        const displayValue = hasNumericValue
+        const defaultDisplayValue = hasNumericValue
             ? numericValue.toLocaleString(undefined, {
                 minimumFractionDigits: 0,
                 maximumFractionDigits: 2,
@@ -515,26 +609,29 @@ let envChart = null;
         const entry = topicEntries.find(([, cfg]) => cfg.topic === topic);
         if (entry) {
             const [name, cfg] = entry;
+            const normalizedName = name.toLowerCase();
             const id = 'value-' + sanitize(name);
             const el = document.getElementById(id);
-            if (el) { el.textContent = displayValue; }
             const statusEl = document.getElementById('status-' + sanitize(name));
             const condition = typeof cfg.condition === 'string' ? cfg.condition.toLowerCase() : null;
             const threshold = parseFloat(cfg.green);
             const hasThreshold = Number.isFinite(threshold) && (condition === 'above' || condition === 'below');
             const isTrackedSensor = sensorStatus.has(name);
+            const match = hasNumericValue && hasThreshold
+                ? (condition === 'above' ? numericValue > threshold : numericValue < threshold)
+                : false;
+            const displayValue = normalizedName === 'safe' && hasNumericValue
+                ? (match ? 'Safe' : 'Unsafe')
+                : defaultDisplayValue;
+            if (el) { el.textContent = displayValue; }
 
             if (hasNumericValue && hasThreshold) {
-                let match = false;
-                if (condition === 'above') match = numericValue > threshold;
-                else if (condition === 'below') match = numericValue < threshold;
-
                 if (statusEl) {
                     if (match) {
-                        statusEl.textContent = 'Favorable';
+                        statusEl.textContent = sensorConditionLabel(name, true);
                         statusEl.className = `${statusBaseClasses} border-emerald-400/30 bg-emerald-400/10 text-emerald-600 dark:text-emerald-300`;
                     } else {
-                        statusEl.textContent = 'Warning';
+                        statusEl.textContent = sensorConditionLabel(name, false);
                         statusEl.className = `${statusBaseClasses} border-rose-400/30 bg-rose-400/10 text-rose-600 dark:text-rose-300`;
                     }
                 }
@@ -606,15 +703,15 @@ let envChart = null;
             type: 'column',
             backgroundColor: 'transparent',
             plotBackgroundColor: 'transparent',
-            spacing: [22, 16, 12, 12],
+            spacing: [8, 8, 8, 8],
             zooming: {
                 type: 'x',
                 mouseWheel: true
             },
             zoomType: 'x'
         },
-        title: { text: 'Observable window · last 30 days', align: 'left' },
-        subtitle: { text: 'Hours reported safe by the local sensor array', align: 'left' },
+        title: { text: null },
+        subtitle: { text: null },
         credits: { enabled: false },
         legend: { enabled: false },
         xAxis: { categories: safeCategories },
@@ -642,8 +739,8 @@ let envChart = null;
                 },
                 zoomType: 'x'
             },
-            title: { text: 'Live atmospheric signals', align: 'left' },
-            subtitle: { text: 'Cloud temperature, ambient light and sky quality', align: 'left' },
+            title: { text: null },
+            subtitle: { text: null },
             credits: { enabled: false },
             xAxis: { type: 'datetime' },
             colors: ['#22d3ee', '#a78bfa', '#34d399'],

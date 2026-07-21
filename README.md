@@ -17,6 +17,7 @@ Website that publicly shows observatory sensor data. The site displays live and 
 - Shared observatory-console design across the dashboard, archive, history, and wall-display pages
 - Lightweight CSS/SVG orbital visuals with no large decorative image downloads
 - Single-viewport desktop dashboard with a compact status strip, 3×3 telemetry matrix, and side-by-side camera and analysis stack
+- Prominent observing-safety state with sensor-specific language for binary safety and rain conditions
 
 ## Sensor Data Tables
 
@@ -56,6 +57,17 @@ ORDER BY dateTime DESC;
 
 MQTT host and topic names are defined in `mqtt_config.json`. Update this file to match your local MQTT broker settings.
 Each topic can optionally include a `green` threshold and a `condition` of `above` or `below` to highlight the card border when the incoming value meets the rule. Topics may also specify a `unit` string to label displayed values. The MQTT WebSocket port is 8083.
+
+### Build the production stylesheet
+
+Tailwind utilities are compiled locally instead of loaded through the browser runtime:
+
+```bash
+npm install
+npm run build:css
+```
+
+Commit `tailwind.generated.css` with any template or utility-class changes so the PHP-only deployment remains self-contained.
 
 Database credentials are provided to Apache via environment variables:
 

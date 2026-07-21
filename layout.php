@@ -12,12 +12,9 @@ function layout_start(string $pageTitle, string $heroTitle, string $heroSubtitle
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars($pageTitle); ?></title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="tailwind.generated.css">
     <link rel="stylesheet" href="observatory.css">
-    <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        tailwind.config = {
-            darkMode: 'class',
-        };
         try {
             const storedTheme = localStorage.getItem('color-theme');
             if (storedTheme === 'dark' || (!storedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
