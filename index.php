@@ -89,79 +89,71 @@ $last7SafeHoursDisplay = $last7SafeHours !== null ? number_format($last7SafeHour
     <!-- Highcharts -->
     <script src="https://code.highcharts.com/highcharts.js"></script>
 </head>
-<body class="min-h-screen bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-gray-800 dark:to-gray-900 text-gray-800 dark:text-gray-100 font-sans">
-    <div class="max-w-6xl mx-auto p-6">
-        <section id="heroCard" class="relative mb-8 overflow-hidden rounded-3xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white shadow-xl dark:from-indigo-600 dark:via-purple-700 dark:to-pink-700">
-            <div class="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.7),transparent_60%)]"></div>
-            <div class="relative px-6 py-10 sm:px-10">
-                <div class="grid gap-10 lg:grid-cols-2 lg:items-center">
-                    <div class="flex flex-col gap-4">
-                        <div class="flex items-center gap-3">
-                            <div>
-                                <p class="text-xs uppercase tracking-[0.3em] text-white/80">Wheathampstead Observatory</p>
-                                <h1 class="text-3xl font-semibold sm:text-4xl">Wheathampstead AstroPhotography Conditions</h1>
-                            </div>
-                            <img src="favicon.svg" alt="" class="h-12 w-12 rounded-full bg-white/20 p-2 shadow-lg" />
-                        </div>
-                        <p class="max-w-xl text-base text-white/90 sm:text-lg">Live observatory telemetry, safety insights, and the latest sky conditions to plan your next observing session.</p>
-                    </div>
-                    <div class="flex flex-col items-stretch gap-6">
-                        <div class="flex flex-wrap items-center justify-start gap-3 lg:justify-end">
-                            <span id="mqttStatus" class="inline-flex items-center gap-2 rounded-full bg-amber-100/90 px-4 py-2 text-sm font-semibold text-amber-800 shadow-sm ring-1 ring-white/50 backdrop-blur">Connecting...</span>
-                            <button id="modeToggle" class="inline-flex items-center gap-2 rounded-full bg-white/20 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent" aria-label="Switch to Dark Mode">
-                                🌙 <span class="hidden sm:inline">Dark mode</span>
-                            </button>
-                        </div>
-                        <div class="flex flex-col gap-4 sm:flex-row sm:items-stretch sm:justify-end">
-                            <div class="rounded-2xl bg-white/15 px-6 py-5 text-white shadow-lg ring-1 ring-white/40 backdrop-blur">
-                                <p class="text-xs font-semibold uppercase tracking-wider text-white/70">Safe observing time · last 7 days</p>
-                                <p class="mt-2 text-4xl font-bold sm:text-5xl">
-                                    <?= htmlspecialchars($last7SafeHoursDisplay, ENT_QUOTES, 'UTF-8'); ?>
-                                    <?php if ($last7SafeHours !== null): ?>
-                                        <span class="ml-1 text-lg font-semibold">hrs</span>
-                                    <?php endif; ?>
-                                </p>
-                                <p class="mt-1 text-xs text-white/70">Total clear-sky hours recorded over the previous seven days.</p>
-                            </div>
-                            <nav aria-label="Quick links" class="flex flex-col gap-3 sm:items-end">
-                                <a href="clear.php" class="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70">Clear by Month</a>
-                                <a href="#chartHub" data-chart-link="safe" class="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70">Safe Hours Chart</a>
-                                <a href="#chartHub" data-chart-link="realtime" class="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70">Environment Trends</a>
-                            </nav>
-                        </div>
+<body class="min-h-screen bg-slate-100 text-slate-900 antialiased dark:bg-[#0b1120] dark:text-slate-100 font-sans">
+    <div class="max-w-7xl mx-auto px-5 py-6 sm:px-8 sm:py-8">
+        <header id="heroCard" class="mb-8 overflow-hidden border border-slate-800 bg-slate-950 text-white shadow-sm dark:border-slate-700">
+            <div class="border-b border-white/10 px-6 py-4 sm:px-8">
+                <div class="flex flex-wrap items-center justify-between gap-4">
+                    <a href="index.php" class="flex items-center gap-3 font-semibold tracking-tight text-white">
+                        <img src="logo.svg" alt="Observatory telescope logo" class="h-9 w-9" />
+                        <span class="text-sm sm:text-base">Wheathampstead AstroPhotography Conditions</span>
+                    </a>
+                    <div class="flex items-center gap-3">
+                        <span id="mqttStatus" class="inline-flex items-center gap-2 rounded-md border border-amber-300/30 bg-amber-50/10 px-3 py-1.5 text-xs font-semibold text-amber-100">Connecting...</span>
+                        <button id="modeToggle" class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-white/15 text-slate-200 transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300" aria-label="Switch to Dark Mode">
+                            <span aria-hidden="true">◐</span><span class="sr-only">Toggle colour mode</span>
+                        </button>
                     </div>
                 </div>
             </div>
+            <div class="grid gap-8 px-6 py-9 sm:px-8 lg:grid-cols-[1fr_auto] lg:items-end">
+                <div>
+                    <p class="mb-3 text-xs font-semibold uppercase tracking-[0.22em] text-sky-300">Live observatory dashboard</p>
+                    <h1 class="max-w-3xl text-3xl font-semibold tracking-tight sm:text-5xl">Know when the sky is ready.</h1>
+                    <p class="mt-4 max-w-2xl text-base leading-7 text-slate-300">A calm, focused view of current conditions, recent observations, and the roof camera — built for planning your next session.</p>
+                </div>
+                <div class="min-w-[15rem] border-l border-white/15 pl-5">
+                    <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Safe observing · 7 days</p>
+                    <p class="mt-2 text-4xl font-semibold tracking-tight">
+                        <?= htmlspecialchars($last7SafeHoursDisplay, ENT_QUOTES, 'UTF-8'); ?><?php if ($last7SafeHours !== null): ?><span class="ml-1 text-base font-medium text-slate-400">hours</span><?php endif; ?>
+                    </p>
+                    <a href="clear.php" class="mt-4 inline-flex text-sm font-semibold text-sky-300 transition hover:text-sky-200">Review monthly conditions <span class="ml-2" aria-hidden="true">→</span></a>
+                </div>
+            </div>
+        </header>
+        <section class="mb-4 flex flex-wrap items-end justify-between gap-3">
+            <div><p class="text-xs font-semibold uppercase tracking-[0.18em] text-sky-700 dark:text-sky-300">Current conditions</p><h2 class="mt-1 text-xl font-semibold tracking-tight">Live instrument readings</h2></div>
+            <p class="text-sm text-slate-500 dark:text-slate-400">Values update as messages arrive.</p>
         </section>
-        <div id="cards" class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 auto-rows-fr"></div>
-        <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[1fr_1.2fr] lg:items-stretch">
-            <section id="skyImageContainer" class="relative flex flex-col overflow-hidden rounded-2xl bg-white/70 p-5 shadow dark:bg-gray-800/70">
+        <div id="cards" class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 auto-rows-fr"></div>
+        <div class="mt-8 grid grid-cols-1 gap-4 lg:grid-cols-[1fr_1.2fr] lg:items-stretch">
+            <section id="skyImageContainer" class="relative flex flex-col overflow-hidden border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-950">
                 <div class="flex items-center justify-between gap-3">
                     <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100">Live Sky Camera</h2>
-                    <button type="button" data-target="skyImageContainer" class="fullscreen-toggle inline-flex h-10 w-10 items-center justify-center rounded-full bg-indigo-500 text-white shadow transition hover:bg-indigo-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-200 dark:bg-indigo-600 dark:hover:bg-indigo-500" aria-label="Toggle full screen for sky image">
+                    <button type="button" data-target="skyImageContainer" class="fullscreen-toggle inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-700 shadow-sm transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800" aria-label="Toggle full screen for sky image">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M8 3H5a2 2 0 0 0-2 2v3m0 8v3a2 2 0 0 0 2 2h3m8 0h3a2 2 0 0 0 2-2v-3m0-8V5a2 2 0 0 0-2-2h-3" />
                         </svg>
                     </button>
                 </div>
-                <div class="mt-4 flex flex-1 items-center justify-center overflow-hidden rounded-xl bg-gray-900/70 p-2 shadow-inner dark:bg-gray-900/80 min-h-[18rem]">
+                <div class="mt-4 flex flex-1 items-center justify-center overflow-hidden rounded-lg bg-slate-950 p-2 shadow-inner dark:bg-slate-900 min-h-[18rem]">
                     <img id="skyImage" alt="Sky image" class="max-h-full w-full object-contain" />
                 </div>
                 <p class="mt-4 text-sm text-gray-600 dark:text-gray-300">Updated continuously from the observatory roof camera.</p>
             </section>
-            <section id="chartHub" class="relative flex flex-col overflow-hidden rounded-2xl bg-white/70 p-5 shadow dark:bg-gray-800/70">
+            <section id="chartHub" class="relative flex flex-col overflow-hidden border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-950">
                 <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div role="tablist" aria-label="Chart selection" class="inline-flex rounded-full bg-indigo-50/70 p-1 text-sm font-semibold text-indigo-600 shadow-inner dark:bg-gray-700/70 dark:text-indigo-200">
+                    <div role="tablist" aria-label="Chart selection" class="inline-flex rounded-md border border-slate-200 bg-slate-100 p-1 text-sm font-semibold text-slate-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
                         <button type="button" data-chart-tab="safe" class="chart-tab rounded-full px-4 py-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-200 dark:focus-visible:ring-indigo-400" role="tab" aria-selected="true">Safe Hours</button>
                         <button type="button" data-chart-tab="realtime" class="chart-tab rounded-full px-4 py-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-200 dark:focus-visible:ring-indigo-400" role="tab" aria-selected="false">Realtime Trends</button>
                     </div>
-                    <button type="button" data-target="chartHub" class="fullscreen-toggle inline-flex h-10 w-10 items-center justify-center rounded-full bg-indigo-500 text-white shadow transition hover:bg-indigo-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-200 dark:bg-indigo-600 dark:hover:bg-indigo-500" aria-label="Toggle full screen for charts">
+                    <button type="button" data-target="chartHub" class="fullscreen-toggle inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-700 shadow-sm transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800" aria-label="Toggle full screen for charts">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M8 3H5a2 2 0 0 0-2 2v3m0 8v3a2 2 0 0 0 2 2h3m8 0h3a2 2 0 0 0 2-2v-3m0-8V5a2 2 0 0 0-2-2h-3" />
                         </svg>
                     </button>
                 </div>
-                <div id="chartDisplay" class="relative mt-4 flex-1 overflow-hidden rounded-xl bg-white/60 p-2 dark:bg-gray-900/40 min-h-[18rem]">
+                <div id="chartDisplay" class="relative mt-4 flex-1 overflow-hidden rounded-lg bg-slate-50 p-2 dark:bg-slate-900/60 min-h-[18rem]">
                     <div id="safeChart" class="absolute inset-0"></div>
                     <div id="envChart" class="absolute inset-0 hidden"></div>
                 </div>
@@ -195,8 +187,8 @@ const envSeriesData = envTopicNames.map(() => []);
 let envChart = null;
 
     const heroCard = document.getElementById('heroCard');
-    const heroDefaultGradientClasses = ['from-indigo-500', 'via-purple-500', 'to-pink-500', 'dark:from-indigo-600', 'dark:via-purple-700', 'dark:to-pink-700'];
-    const heroSafeGradientClasses = ['from-emerald-500', 'via-emerald-600', 'to-emerald-700', 'dark:from-emerald-600', 'dark:via-emerald-700', 'dark:to-emerald-800'];
+    const heroDefaultGradientClasses = ['bg-slate-950', 'dark:bg-slate-950'];
+    const heroSafeGradientClasses = ['bg-emerald-950', 'dark:bg-emerald-950'];
     let heroState = 'default';
 
     function setHeroGradient(state) {
@@ -232,14 +224,14 @@ let envChart = null;
     const sanitize = name => name.replace(/[^a-zA-Z0-9_-]/g, '_');
 
     const icons = {
-        temperature: '🌡️',
-        rain: '🌧️',
-        light: '💡',
-        clouds: '☁️',
-        safe: '🛡️',
-        sqm: '⭐',
-        humidity: '💧',
-        dewpoint: '❄️'
+        temperature: 'TMP',
+        rain: 'RAIN',
+        light: 'LUX',
+        clouds: 'CLD',
+        safe: 'SAFE',
+        sqm: 'SQM',
+        humidity: 'RH',
+        dewpoint: 'DPT'
     };
 
     const statusBaseClasses = 'inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide shadow-sm ring-1 ring-inset transition-colors backdrop-blur-sm';
@@ -405,38 +397,33 @@ let envChart = null;
         const card = document.createElement('div');
 
         card.id = 'card-' + sanitize(name);
-        card.className = 'relative flex h-full flex-col overflow-hidden rounded-3xl bg-white/90 p-6 shadow-xl shadow-indigo-200/60 ring-1 ring-white/40 transition dark:bg-slate-900/85 dark:shadow-black/40 dark:ring-white/10';
-        const icon = icons[name] || '📟';
+        card.className = 'relative flex h-full flex-col overflow-hidden border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-800 dark:bg-slate-950';
+        const icon = icons[name] || 'SEN';
         const label = name.replace(/[_-]/g, ' ');
         const unitMarkup = cfg.unit ? `<span class="ml-1 text-lg font-medium text-slate-500 dark:text-slate-300">${cfg.unit}</span>` : '';
         card.innerHTML = `
-            <div class="pointer-events-none absolute -top-20 -right-10 h-48 w-48 rounded-full bg-white/40 dark:bg-white/10 blur-3xl"></div>
-            <div class="pointer-events-none absolute -bottom-24 -left-16 h-56 w-56 rounded-full bg-indigo-200/30 dark:bg-indigo-500/10 blur-3xl"></div>
-            <div class="relative flex h-full flex-col justify-between gap-6">
+            <div class="relative flex h-full flex-col justify-between gap-5">
                 <div class="flex flex-wrap items-start justify-between gap-3">
                     <div class="flex items-center gap-3">
-                        <div class="relative">
-                            <span class="relative z-10 text-3xl sm:text-4xl">${icon}</span>
-                            <span class="pointer-events-none absolute -inset-2 rounded-full bg-white/60 dark:bg-white/10 blur-lg"></span>
-                        </div>
+                        <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-50 text-[10px] font-bold tracking-wide text-sky-700 dark:bg-sky-950 dark:text-sky-300"><span>${icon}</span></div>
                         <div class="flex flex-col">
-                            <h2 class="text-lg font-semibold capitalize text-slate-900 dark:text-slate-100">${label}</h2>
-                            <p class="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">Live sensor</p>
+                            <h2 class="text-base font-semibold capitalize text-slate-900 dark:text-slate-100">${label}</h2>
+                            <p class="text-[11px] font-medium uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">Live sensor</p>
                         </div>
                     </div>
                     <span id="status-${sanitize(name)}" class="${statusBaseClasses} bg-slate-100/80 text-slate-600 ring-slate-200/70">Monitoring</span>
                 </div>
                 <div class="flex flex-col gap-4">
                     <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                        <p class="text-4xl font-semibold leading-tight text-slate-900 dark:text-white sm:text-5xl">
+                        <p class="text-4xl font-semibold tracking-tight text-slate-900 dark:text-white">
                             <span id="${id}">--</span>${unitMarkup}
                         </p>
-                        <div class="relative h-24 w-full overflow-hidden rounded-2xl bg-white/50 shadow-inner ring-1 ring-white/40 dark:bg-slate-900/40 dark:ring-white/10 sm:h-28 sm:w-auto sm:min-w-[10rem]">
+                        <div class="relative h-24 w-full overflow-hidden rounded-md bg-slate-50 ring-1 ring-slate-100 dark:bg-slate-900 dark:ring-slate-800 sm:h-28 sm:w-auto sm:min-w-[10rem]">
                             <div id="chart-${sanitize(name)}" class="absolute inset-0"></div>
                         </div>
                     </div>
                     <div class="flex flex-wrap items-center gap-2">
-                        <a href="historical.php?topic=${encodeURIComponent(name)}" class="inline-flex items-center gap-2 rounded-full bg-indigo-500/90 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-indigo-600/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-200 dark:bg-indigo-500/80 dark:hover:bg-indigo-400/90" aria-label="View History">
+                        <a href="historical.php?topic=${encodeURIComponent(name)}" class="inline-flex items-center gap-2 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800" aria-label="View History">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 3v18h18M6 15l4-4 3 3 7-7" />
                             </svg>
@@ -757,7 +744,7 @@ let envChart = null;
 
     function updateModeIcon() {
         const isDark = document.documentElement.classList.contains('dark');
-        modeToggle.textContent = isDark ? '🌞' : '🌙';
+        modeToggle.innerHTML = '<span aria-hidden="true">' + (isDark ? '◑' : '◐') + '</span><span class="sr-only">Toggle colour mode</span>';
         modeToggle.setAttribute('aria-label', isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode');
     }
 

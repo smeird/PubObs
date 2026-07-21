@@ -115,14 +115,14 @@ $heroSubtitle = $unit
     ? 'Explore observatory records in ' . $unit . ' and focus on the ranges that matter most.'
     : 'Explore observatory records and focus on the ranges that matter most.';
 $heroAside = '<div class="flex flex-col items-start gap-2">'
-    . '<span class="text-xs font-semibold uppercase tracking-widest text-indigo-500 dark:text-indigo-300">Selected Topic</span>'
-    . '<span class="text-lg font-semibold text-gray-900 dark:text-gray-100">' . htmlspecialchars($displayName, ENT_QUOTES) . '</span>';
+    . '<span class="text-xs font-semibold uppercase tracking-widest text-sky-700 dark:text-sky-300">Selected Topic</span>'
+    . '<span class="text-lg font-semibold text-slate-900 dark:text-slate-100">' . htmlspecialchars($displayName, ENT_QUOTES) . '</span>';
 if ($unit) {
-    $heroAside .= '<span class="text-sm text-gray-600 dark:text-gray-400">Unit: ' . htmlspecialchars($unit, ENT_QUOTES) . '</span>';
+    $heroAside .= '<span class="text-sm text-slate-600 dark:text-slate-400">Unit: ' . htmlspecialchars($unit, ENT_QUOTES) . '</span>';
 }
 $heroAside .= '</div>';
 
-$navActions = '<a href="clear.php" class="inline-flex items-center gap-2 rounded-full border border-indigo-200/70 bg-white/70 px-4 py-2 text-sm font-semibold text-indigo-600 transition hover:border-indigo-300 hover:text-indigo-700 dark:border-indigo-700/60 dark:bg-gray-800/60 dark:text-indigo-200 dark:hover:text-indigo-100">'
+$navActions = '<a href="clear.php" class="inline-flex items-center gap-2 rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800">'
     . '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.5">'
     . '<path stroke-linecap="round" stroke-linejoin="round" d="M16.5 3.75h3.75v3.75M21 3 12.75 11.25" />'
     . '<path stroke-linecap="round" stroke-linejoin="round" d="M18.75 12v6a2.25 2.25 0 0 1-2.25 2.25h-9A2.25 2.25 0 0 1 5.25 18V9a2.25 2.25 0 0 1 2.25-2.25h6" />'
@@ -137,13 +137,13 @@ layout_start($pageTitle, $heroTitle, $heroSubtitle, [
 ]);
 ?>
 <section>
-    <div class="space-y-6 rounded-3xl bg-white/70 p-6 shadow dark:bg-gray-800/70">
+    <div class="space-y-6 border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950">
         <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div class="space-y-1">
-                <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">Trend explorer</h2>
-                <p class="text-sm text-gray-600 dark:text-gray-400">Use the preset buttons or drag the timeline below to refine the range.</p>
+                <h2 class="text-xl font-semibold text-slate-900 dark:text-slate-100">Trend explorer</h2>
+                <p class="text-sm text-slate-600 dark:text-slate-400">Use the preset buttons or drag the timeline below to refine the range.</p>
             </div>
-            <button id="downloadCsv" type="button" class="inline-flex items-center gap-2 rounded-full bg-indigo-500 px-4 py-2 text-sm font-semibold text-white shadow transition hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-500">
+            <button id="downloadCsv" type="button" class="inline-flex items-center gap-2 rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-700 dark:bg-sky-600 dark:hover:bg-sky-500">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0 3.5-3.5M12 15l-3.5-3.5M5 21h14" />
                 </svg>
