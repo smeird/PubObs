@@ -1,38 +1,75 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-labelledby="logoTitle logoDesc">
-  <title id="logoTitle">Wheathampstead observatory telescope logo</title>
-  <desc id="logoDesc">Circular logo showing a telescope on a tripod aimed at a glowing sky with stars.</desc>
+  <title id="logoTitle">Wheathampstead Observatory</title>
+  <desc id="logoDesc">A telescope on a tripod aimed toward a crescent Moon in a dark, star-filled sky.</desc>
   <defs>
-    <radialGradient id="halo" cx="55%" cy="32%" r="60%">
-      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.75" />
-      <stop offset="100%" stop-color="#38bdf8" stop-opacity="0" />
+    <linearGradient id="night" x1="28" y1="16" x2="132" y2="145" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#07111f" />
+      <stop offset="0.58" stop-color="#0b1d38" />
+      <stop offset="1" stop-color="#102b4d" />
+    </linearGradient>
+    <radialGradient id="moonGlow" cx="122" cy="19" r="42" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#67e8f9" stop-opacity="0.28" />
+      <stop offset="1" stop-color="#67e8f9" stop-opacity="0" />
     </radialGradient>
-    <linearGradient id="night" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#0f172a" />
-      <stop offset="100%" stop-color="#1d4ed8" />
+    <linearGradient id="tube" x1="44" y1="58" x2="121" y2="78" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#dbe7f2" />
+      <stop offset="0.55" stop-color="#f8fbff" />
+      <stop offset="1" stop-color="#a9bfd4" />
     </linearGradient>
-    <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#1e293b" />
-      <stop offset="100%" stop-color="#0f172a" />
+    <linearGradient id="lens" x1="113" y1="54" x2="125" y2="82" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#67e8f9" />
+      <stop offset="1" stop-color="#167da0" />
     </linearGradient>
+    <clipPath id="disc">
+      <circle cx="80" cy="80" r="73" />
+    </clipPath>
+    <mask id="crescent">
+      <rect width="160" height="160" fill="#000" />
+      <circle cx="122" cy="19" r="9" fill="#fff" />
+      <circle cx="126" cy="16" r="8.5" fill="#000" />
+    </mask>
   </defs>
+
   <circle cx="80" cy="80" r="74" fill="url(#night)" />
-  <circle cx="92" cy="46" r="54" fill="url(#halo)" />
-  <path d="M20 112h120v18a74 74 0 0 1-120 0z" fill="url(#ground)" opacity="0.9" />
-  <g fill="#f8fafc" opacity="0.85">
-    <circle cx="52" cy="34" r="3" />
-    <circle cx="116" cy="28" r="2.6" />
-    <circle cx="104" cy="72" r="2.4" />
-    <circle cx="72" cy="20" r="2.2" />
-    <path d="M127 56l2-5l5-2l-2 5z" />
+  <g clip-path="url(#disc)">
+    <circle cx="122" cy="19" r="42" fill="url(#moonGlow)" />
+    <circle cx="122" cy="19" r="9" fill="#e7f8ff" mask="url(#crescent)" />
+
+    <g fill="#d9f7ff">
+      <circle cx="34" cy="31" r="1.8" opacity="0.82" />
+      <circle cx="61" cy="21" r="1.2" opacity="0.64" />
+      <circle cx="91" cy="30" r="1.4" opacity="0.76" />
+      <circle cx="133" cy="61" r="1.3" opacity="0.62" />
+      <circle cx="29" cy="68" r="1.1" opacity="0.55" />
+      <path d="M47 46h6M50 43v6" stroke="#d9f7ff" stroke-width="1.2" stroke-linecap="round" opacity="0.76" />
+    </g>
+
+    <path d="M2 139c24-13 46-14 69-7c25 8 48 6 87-10v42H2z" fill="#06101c" opacity="0.94" />
+    <path d="M14 137c30-11 48-9 68-3c24 7 44 3 67-8" fill="none" stroke="#38bdf8" stroke-width="1.2" opacity="0.18" />
+
+    <g stroke="#b8cadb" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M75 91L48 132" />
+      <path d="M79 93L79 135" />
+      <path d="M83 91L108 132" />
+    </g>
+    <path d="M70 88h18l-3 10H73z" fill="#d4e2ed" />
+
+    <g transform="rotate(-27 80 68)">
+      <rect x="35" y="63" width="13" height="10" rx="3" fill="#7891a8" />
+      <rect x="43" y="57" width="75" height="22" rx="5" fill="url(#tube)" />
+      <path d="M49 62h57" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity="0.48" />
+      <rect x="101" y="57" width="6" height="22" fill="#6f889f" opacity="0.92" />
+      <rect x="113" y="54" width="13" height="28" rx="4" fill="url(#lens)" />
+      <path d="M119 58v20" stroke="#d5f8ff" stroke-width="1.6" stroke-linecap="round" opacity="0.72" />
+      <path d="M67 57v-7h22v7" fill="none" stroke="#8da6bc" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" />
+      <rect x="70" y="47" width="17" height="5" rx="2.5" fill="#c8d8e6" />
+    </g>
+
+    <circle cx="79" cy="79" r="10" fill="#10233b" stroke="#d8e7f2" stroke-width="4" />
+    <circle cx="79" cy="79" r="3" fill="#4dd5ee" />
+    <path d="M79 88v7" stroke="#d4e2ed" stroke-width="5" stroke-linecap="round" />
   </g>
-  <g transform="translate(28 42)">
-    <path fill="#cbd5f5" d="M40 60a6 6 0 1 1-12 0a6 6 0 0 1 12 0Z" />
-    <path fill="#f8fafc" d="M5 15l68 18l-6 20L0 32z" transform="rotate(-12 44 35)" />
-    <path fill="#38bdf8" d="M6 18.5a12 12 0 1 1 15.6 8.5z" />
-    <path fill="#e2e8f0" d="M38.5 65l12.5 36h-12L26 65z" />
-    <path fill="#e2e8f0" d="m54 65l24 36h-13.6l-7.4-22.2z" />
-    <path fill="#e2e8f0" d="m24.8 65-18 36H-4l15.8-36z" />
-    <path fill="#f8fafc" d="M-2 52h56l5 15H-8z" />
-  </g>
-  <circle cx="80" cy="80" r="74" fill="none" stroke="#38bdf8" stroke-width="4" opacity="0.35" />
+
+  <circle cx="80" cy="80" r="74" fill="none" stroke="#67e8f9" stroke-width="2" opacity="0.42" />
+  <circle cx="80" cy="80" r="70" fill="none" stroke="#93c5fd" stroke-width="1" opacity="0.12" />
 </svg>
