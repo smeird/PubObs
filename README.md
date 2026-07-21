@@ -16,6 +16,7 @@ Website that publicly shows observatory sensor data. The site displays live and 
 - Clear page shows safe observing hours aggregated by month for a selected year
 - Shared observatory-console design across the dashboard, archive, history, and wall-display pages
 - Lightweight CSS/SVG orbital visuals with no large decorative image downloads
+- Celestial-navigation linework carried through the site background, heroes, telemetry cards, and analysis surfaces
 - Single-viewport desktop dashboard with a compact status strip, 3×3 telemetry matrix, and side-by-side camera and analysis stack
 - Prominent observing-safety state with sensor-specific language for binary safety and rain conditions
 
