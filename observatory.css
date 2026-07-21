@@ -990,6 +990,36 @@ html.dark body.observatory-shell::after {
     background-size: 18px 18px;
 }
 
+.obs-native-sparkline {
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    pointer-events: none;
+}
+
+.obs-native-sparkline__area {
+    fill: rgba(6, 182, 212, 0.14);
+}
+
+.obs-native-sparkline__line {
+    fill: none;
+    stroke: #0891b2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.4;
+    vector-effect: non-scaling-stroke;
+}
+
+html.dark .obs-native-sparkline__area {
+    fill: rgba(34, 211, 238, 0.2);
+}
+
+html.dark .obs-native-sparkline__line {
+    stroke: #67e8f9;
+    filter: drop-shadow(0 0 3px rgba(34, 211, 238, 0.25));
+}
+
 .obs-visual-stack {
     display: grid;
     min-width: 0;

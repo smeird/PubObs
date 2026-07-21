@@ -6,7 +6,7 @@ Website that publicly shows observatory sensor data. The site displays live and 
 
 - Live data via MQTT
 - Historical data stored in a local MySQL table `obs_weather`
-- Highcharts for interactive graphs
+- Native SVG sparklines for live sensor cards and Highcharts for interactive analytical and historical graphs
 - Tabulator for data tables
 - Tailwind CSS default styling with light and dark modes
 - Index page lists all live data sources with links to historical views, shows a live sky image sourced via MQTT, and displays nightly observable hours from the past 30 days

@@ -311,9 +311,11 @@ let envChart = null;
 
     const statusBaseClasses = 'inline-flex items-center rounded-full border px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-[0.12em] transition-colors';
 
-    const miniChartData = {};
-    const miniCharts = {};
+    const sparklineData = {};
     const THREE_HOURS_MS = 3 * 60 * 60 * 1000;
+    const SPARKLINE_WIDTH = 100;
+    const SPARKLINE_HEIGHT = 32;
+    const SPARKLINE_PADDING = 2;
 
     function formatDateTimeForQuery(date) {
         return date.toISOString().slice(0, 19).replace('T', ' ');
@@ -326,127 +328,64 @@ let envChart = null;
         return Number.isNaN(time) ? null : time;
     }
 
-    function getMiniChartPalette() {
-        const isDark = document.documentElement.classList.contains('dark');
-        if (isDark) {
-            return {
-                line: 'rgba(103, 232, 249, 0.95)',
-                fillTop: 'rgba(34, 211, 238, 0.28)',
-                fillBottom: 'rgba(34, 211, 238, 0.02)'
-            };
+    function buildSparklinePaths(points) {
+        const validPoints = points.filter(point => Number.isFinite(point[0]) && Number.isFinite(point[1]));
+        if (validPoints.length === 0) return { line: '', area: '' };
+
+        const plotWidth = SPARKLINE_WIDTH - (SPARKLINE_PADDING * 2);
+        const plotHeight = SPARKLINE_HEIGHT - (SPARKLINE_PADDING * 2);
+        if (validPoints.length === 1) {
+            const y = SPARKLINE_HEIGHT / 2;
+            const line = `M ${SPARKLINE_PADDING} ${y} L ${SPARKLINE_WIDTH - SPARKLINE_PADDING} ${y}`;
+            const area = `${line} L ${SPARKLINE_WIDTH - SPARKLINE_PADDING} ${SPARKLINE_HEIGHT - SPARKLINE_PADDING} L ${SPARKLINE_PADDING} ${SPARKLINE_HEIGHT - SPARKLINE_PADDING} Z`;
+            return { line, area };
         }
+
+        const firstTime = validPoints[0][0];
+        const lastTime = validPoints[validPoints.length - 1][0];
+        const timeSpan = Math.max(lastTime - firstTime, 1);
+        const values = validPoints.map(point => point[1]);
+        const minValue = Math.min(...values);
+        const maxValue = Math.max(...values);
+        const valueSpan = maxValue - minValue;
+        const midpoint = (minValue + maxValue) / 2;
+        const minimumDisplaySpan = Math.max(Math.abs(midpoint) * 0.05, 0.1);
+        const displaySpan = Math.max(valueSpan * 1.2, minimumDisplaySpan);
+        const displayMax = midpoint + (displaySpan / 2);
+        const coordinates = validPoints.map(([time, value]) => {
+            const x = SPARKLINE_PADDING + (((time - firstTime) / timeSpan) * plotWidth);
+            const y = valueSpan === 0
+                ? SPARKLINE_HEIGHT / 2
+                : SPARKLINE_PADDING + (((displayMax - value) / displaySpan) * plotHeight);
+            return [x, y];
+        });
+        const line = coordinates
+            .map(([x, y], index) => `${index === 0 ? 'M' : 'L'} ${x.toFixed(2)} ${y.toFixed(2)}`)
+            .join(' ');
+        const firstX = coordinates[0][0].toFixed(2);
+        const lastX = coordinates[coordinates.length - 1][0].toFixed(2);
+        const baseline = SPARKLINE_HEIGHT - SPARKLINE_PADDING;
         return {
-            line: 'rgba(8, 145, 178, 0.95)',
-            fillTop: 'rgba(6, 182, 212, 0.2)',
-            fillBottom: 'rgba(6, 182, 212, 0.02)'
+            line,
+            area: `${line} L ${lastX} ${baseline} L ${firstX} ${baseline} Z`
         };
     }
 
-    function applyMiniChartTheme(chart) {
-        if (!chart) return;
-        const palette = getMiniChartPalette();
-        const isDark = document.documentElement.classList.contains('dark');
-        const textColor = isDark ? '#F9FAFB' : '#1F2937';
-        const tooltipBg = isDark ? '#0B1324' : '#FFFFFF';
-        chart.update({
-
-            chart: { backgroundColor: 'transparent', plotBackgroundColor: 'transparent' },
-
-            tooltip: {
-                backgroundColor: tooltipBg,
-                style: { color: textColor },
-                borderColor: 'transparent'
-            }
-        }, false);
-        if (chart.series[0]) {
-            chart.series[0].update({
-                color: palette.line,
-                fillColor: {
-                    linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
-                    stops: [
-                        [0, palette.fillTop],
-                        [1, palette.fillBottom]
-                    ]
-                }
-            }, false);
-        }
-        chart.redraw();
-        silenceMiniChart(chart);
-    }
-
-    function silenceMiniChart(chart) {
-        if (!chart || !chart.renderTo) return;
-        chart.renderTo.setAttribute('aria-hidden', 'true');
-        chart.renderTo.removeAttribute('role');
-        chart.renderTo.removeAttribute('aria-label');
-        const svg = chart.renderTo.querySelector('svg');
-        if (svg) {
-            svg.setAttribute('aria-hidden', 'true');
-            svg.removeAttribute('role');
-            svg.removeAttribute('aria-label');
-        }
-    }
-
-    function renderMiniChart(name, cfg) {
-        const sanitized = sanitize(name);
-        const container = document.getElementById('chart-' + sanitized);
+    function renderSparkline(name) {
+        const container = document.getElementById('sparkline-' + sanitize(name));
         if (!container) return;
-        const data = (miniChartData[name] || []).slice();
-        miniCharts[name] = Highcharts.chart(container, {
-            chart: {
-                type: 'areaspline',
-                backgroundColor: 'transparent',
-
-                plotBackgroundColor: 'transparent',
-
-                animation: false,
-                spacing: [6, 6, 6, 6]
-            },
-            title: { text: null },
-            credits: { enabled: false },
-            legend: { enabled: false },
-            accessibility: { enabled: false },
-            xAxis: {
-                type: 'datetime',
-                labels: { enabled: false },
-                tickLength: 0,
-                lineWidth: 0
-            },
-            yAxis: {
-                title: { text: null },
-                labels: { enabled: false },
-                gridLineWidth: 0
-            },
-            tooltip: {
-                valueSuffix: cfg.unit ? ` ${cfg.unit}` : '',
-                xDateFormat: '%H:%M'
-            },
-            plotOptions: {
-                areaspline: {
-                    lineWidth: 1.5,
-                    marker: { enabled: false },
-                    fillOpacity: 0.5
-                }
-            },
-            series: [{ data }]
-        });
-        container.setAttribute('aria-hidden', 'true');
-        applyMiniChartTheme(miniCharts[name]);
-        updateTrendSummary(name, cfg);
-    }
-
-    function refreshMiniChart(name) {
-        const chart = miniCharts[name];
-        if (!chart || !chart.series[0]) return;
-        chart.series[0].setData((miniChartData[name] || []).slice(), true, false, false);
-        silenceMiniChart(chart);
+        const paths = buildSparklinePaths(sparklineData[name] || []);
+        const line = container.querySelector('[data-sparkline-line]');
+        const area = container.querySelector('[data-sparkline-area]');
+        if (line) line.setAttribute('d', paths.line);
+        if (area) area.setAttribute('d', paths.area);
         updateTrendSummary(name, topics[name] || {});
     }
 
     function updateTrendSummary(name, cfg) {
         const summary = document.getElementById('trend-' + sanitize(name));
         if (!summary) return;
-        const points = miniChartData[name] || [];
+        const points = sparklineData[name] || [];
         if (points.length < 2) {
             summary.textContent = 'Three-hour trend unavailable.';
             return;
@@ -459,21 +398,21 @@ let envChart = null;
         summary.textContent = `Three-hour trend ${direction}, from ${first.toFixed(2)} to ${last.toFixed(2)}${unit}.`;
     }
 
-    function recordMiniChartPoint(name, numericValue) {
+    function recordSparklinePoint(name, numericValue) {
         if (!Number.isFinite(numericValue)) return;
-        if (!miniChartData[name]) return;
+        if (!sparklineData[name]) return;
         const now = Date.now();
-        const points = miniChartData[name];
+        const points = sparklineData[name];
         points.push([now, numericValue]);
         const cutoff = now - THREE_HOURS_MS;
         while (points.length && points[0][0] < cutoff) {
             points.shift();
         }
-        refreshMiniChart(name);
+        renderSparkline(name);
     }
 
-    function initializeMiniChart(name, cfg) {
-        miniChartData[name] = [];
+    function initializeSparkline(name) {
+        sparklineData[name] = [];
         const now = new Date();
         const start = new Date(now.getTime() - THREE_HOURS_MS);
         const params = new URLSearchParams({
@@ -493,12 +432,12 @@ let envChart = null;
                     return [ts, val];
                 }).filter(Boolean);
                 if (parsed.length) {
-                    miniChartData[name] = parsed;
+                    sparklineData[name] = parsed.sort((a, b) => a[0] - b[0]);
                 }
             })
             .catch(() => {})
             .finally(() => {
-                renderMiniChart(name, cfg);
+                renderSparkline(name);
             });
     }
 
@@ -531,13 +470,18 @@ let envChart = null;
                     <span id="status-${sanitize(name)}" class="${statusBaseClasses} border-slate-300/60 bg-slate-500/5 text-slate-500 dark:border-slate-700 dark:text-slate-400">Awaiting</span>
                 </div>
                 <div class="obs-chart-well obs-mini-chart-well">
-                    <div id="chart-${sanitize(name)}" class="absolute inset-0" aria-hidden="true"></div>
+                    <div id="sparkline-${sanitize(name)}" class="absolute inset-0" aria-hidden="true">
+                        <svg class="obs-native-sparkline" viewBox="0 0 100 32" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+                            <path data-sparkline-area class="obs-native-sparkline__area"></path>
+                            <path data-sparkline-line class="obs-native-sparkline__line"></path>
+                        </svg>
+                    </div>
                 </div>
                 <p id="trend-${sanitize(name)}" class="sr-only">Three-hour trend loading.</p>
             </div>
         `;
         cardsContainer.appendChild(card);
-        initializeMiniChart(name, cfg);
+        initializeSparkline(name);
     });
 
 
@@ -653,7 +597,7 @@ let envChart = null;
                 updateHeroState();
             }
             if (hasNumericValue) {
-                recordMiniChartPoint(name, numericValue);
+                recordSparklinePoint(name, numericValue);
             }
         }
         const envIndex = envSeriesMap[topic];
@@ -863,7 +807,6 @@ let envChart = null;
             }, false);
             c.redraw();
         });
-        Object.values(miniCharts).forEach(applyMiniChartTheme);
     }
 
     function updateModeIcon() {
