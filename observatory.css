@@ -83,7 +83,7 @@ html.dark body.observatory-shell::before {
 }
 
 body.observatory-shell::after {
-    opacity: 0.34;
+    opacity: 0.48;
     background-image: url("celestial-map.svg");
     background-position: center top;
     background-repeat: no-repeat;
@@ -92,7 +92,7 @@ body.observatory-shell::after {
 }
 
 html.dark body.observatory-shell::after {
-    opacity: 0.52;
+    opacity: 0.68;
 }
 
 ::selection {
@@ -286,7 +286,7 @@ html.dark body.observatory-shell::after {
     position: absolute;
     inset: 0;
     content: "";
-    opacity: 0.42;
+    opacity: 0.5;
     background-image:
         url("celestial-map.svg"),
         linear-gradient(rgba(103, 232, 249, 0.04) 1px, transparent 1px),
@@ -538,7 +538,7 @@ html.dark body.observatory-shell::after {
     border: 1px solid var(--obs-border);
     border-radius: 0.8rem;
     background:
-        radial-gradient(ellipse at 86% 112%, transparent 0 38%, rgba(8, 145, 178, 0.09) 38.3% 38.7%, transparent 39% 52%, rgba(109, 92, 231, 0.055) 52.3% 52.7%, transparent 53%),
+        radial-gradient(ellipse at 86% 112%, transparent 0 38%, rgba(8, 145, 178, 0.13) 38.3% 38.7%, transparent 39% 52%, rgba(109, 92, 231, 0.085) 52.3% 52.7%, transparent 53%),
         linear-gradient(var(--obs-grid) 1px, transparent 1px),
         linear-gradient(90deg, var(--obs-grid) 1px, transparent 1px),
         var(--obs-panel-soft);
@@ -890,9 +890,9 @@ html.dark body.observatory-shell::after {
     bottom: -2.8rem;
     width: 9rem;
     height: 5rem;
-    border: 1px solid rgba(8, 145, 178, 0.08);
+    border: 1px solid rgba(8, 145, 178, 0.12);
     border-radius: 50%;
-    box-shadow: 0 0 0 1.2rem rgba(109, 92, 231, 0.018);
+    box-shadow: 0 0 0 1.2rem rgba(109, 92, 231, 0.03);
     content: "";
     pointer-events: none;
     transform: rotate(-17deg);
@@ -1017,11 +1017,11 @@ html.dark body.observatory-shell::after {
     z-index: 0;
     width: 16rem;
     height: 9rem;
-    border: 1px solid rgba(8, 145, 178, 0.09);
+    border: 1px solid rgba(8, 145, 178, 0.13);
     border-radius: 50%;
     box-shadow:
-        0 0 0 2.2rem rgba(8, 145, 178, 0.018),
-        0 0 0 4.4rem rgba(109, 92, 231, 0.014);
+        0 0 0 2.2rem rgba(8, 145, 178, 0.028),
+        0 0 0 4.4rem rgba(109, 92, 231, 0.024);
     content: "";
     pointer-events: none;
     transform: rotate(-15deg);
@@ -1113,8 +1113,12 @@ html.dark body.observatory-shell::after {
     }
 
     .obs-visual-stack {
-        height: 27.25rem;
+        height: 36.8rem;
         grid-template-rows: minmax(0, 1.25fr) minmax(0, 1fr);
+    }
+
+    .obs-compact-card-inner {
+        min-height: 9.75rem;
     }
 }
 
@@ -1151,7 +1155,7 @@ html.dark body.observatory-shell::after {
     background-repeat: no-repeat;
     background-size: 70rem auto;
     content: "";
-    opacity: 0.25;
+    opacity: 0.34;
     pointer-events: none;
     mask-image: linear-gradient(90deg, transparent 18%, black 72%);
 }
