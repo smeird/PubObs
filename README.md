@@ -19,6 +19,9 @@ Website that publicly shows observatory sensor data. The site displays live and 
 - Celestial-navigation linework carried through the site background, heroes, telemetry cards, and analysis surfaces
 - Extended desktop dashboard with a compact status strip, spacious 3×3 telemetry matrix, and side-by-side camera and analysis stack
 - Prominent observing-safety state with sensor-specific language for binary safety and rain conditions
+- Fail-safe freshness tracking that marks telemetry stale after 150 seconds, marks camera frames stale after five minutes, and never reports an old safety value as current
+- Compact observing context showing the next astronomical-darkness window and Moon illumination for the approximate public location
+- Derived condensation risk based on the temperature-to-dew-point margin
 
 ## Sensor Data Tables
 
@@ -69,6 +72,14 @@ npm run build:css
 ```
 
 Commit `tailwind.generated.css` with any template or utility-class changes so the PHP-only deployment remains self-contained.
+
+### Run dashboard logic tests
+
+```bash
+npm test
+```
+
+The astronomy calculations use the self-hosted SunCalc 1.9.0 browser build in `vendor/`; its licence is included alongside the source file. No runtime request to an astronomy service is required.
 
 Database credentials are provided to Apache via environment variables:
 

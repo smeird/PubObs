@@ -768,6 +768,7 @@ html.dark body.observatory-shell::after {
 .obs-compact-system-grid > div,
 .obs-compact-system-link {
     display: grid;
+    min-width: 0;
     gap: 0.15rem;
     padding: 0.55rem 0.7rem;
 }
@@ -789,10 +790,18 @@ html.dark body.observatory-shell::after {
 }
 
 .obs-compact-system-grid strong {
+    overflow: hidden;
     color: #c1cedd;
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     font-size: 0.66rem;
     font-weight: 650;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.obs-compact-system-grid .obs-data-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
     white-space: nowrap;
 }
 
@@ -828,6 +837,11 @@ html.dark body.observatory-shell::after {
 .obs-compact-safety[data-state="unsafe"] strong,
 .obs-compact-safety[data-state="unsafe"] .obs-data-label {
     color: #fda4af;
+}
+
+.obs-compact-safety[data-state="unknown"] strong,
+.obs-compact-safety[data-state="unknown"] .obs-data-label {
+    color: #fbbf24;
 }
 
 .obs-dashboard-grid {
@@ -978,10 +992,67 @@ html.dark body.observatory-shell::after {
 }
 
 .obs-readout-card--compact [id^="status-"] {
+    max-width: 8.5rem;
     min-height: 1.28rem;
+    overflow: hidden;
     padding: 0.18rem 0.38rem;
     font-size: 0.48rem;
     letter-spacing: 0.08em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.obs-sensor-status--neutral {
+    border-color: var(--obs-border);
+    background: rgba(100, 116, 139, 0.06);
+    color: var(--obs-muted);
+}
+
+.obs-sensor-status--live {
+    border-color: rgba(6, 182, 212, 0.25);
+    background: rgba(6, 182, 212, 0.07);
+    color: var(--obs-cyan);
+}
+
+.obs-sensor-status--good {
+    border-color: rgba(16, 185, 129, 0.3);
+    background: rgba(16, 185, 129, 0.09);
+    color: var(--obs-green);
+}
+
+.obs-sensor-status--warn {
+    border-color: rgba(245, 158, 11, 0.3);
+    background: rgba(245, 158, 11, 0.09);
+    color: #d97706;
+}
+
+html.dark .obs-sensor-status--warn {
+    color: #fbbf24;
+}
+
+.obs-sensor-status--bad {
+    border-color: rgba(244, 63, 94, 0.3);
+    background: rgba(244, 63, 94, 0.09);
+    color: var(--obs-red);
+}
+
+.obs-sensor-status--stale {
+    border-color: rgba(245, 158, 11, 0.3);
+    background: rgba(245, 158, 11, 0.08);
+    color: #b45309;
+}
+
+html.dark .obs-sensor-status--stale {
+    color: #fbbf24;
+}
+
+.obs-readout-card--stale {
+    border-color: rgba(245, 158, 11, 0.25);
+}
+
+.obs-readout-card--stale .obs-readout-value,
+.obs-readout-card--stale .obs-mini-chart-well {
+    opacity: 0.55;
 }
 
 .obs-mini-chart-well {
@@ -1065,6 +1136,35 @@ html.dark .obs-native-sparkline__line {
 .obs-panel--compact .obs-icon-button {
     width: 2.5rem;
     min-height: 2.5rem;
+}
+
+.obs-compact-panel-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+.obs-frame-age {
+    color: var(--obs-muted);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.56rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.obs-frame-age--stale {
+    color: #d97706;
+}
+
+html.dark .obs-frame-age--stale {
+    color: #fbbf24;
+}
+
+.obs-panel--stale .obs-camera-well #skyImage {
+    filter: saturate(0.65);
+    opacity: 0.58;
 }
 
 .obs-camera-well--compact,

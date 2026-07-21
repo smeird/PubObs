@@ -92,6 +92,8 @@ $last7SafeHoursDisplay = $last7SafeHours !== null ? number_format($last7SafeHour
     <!-- Highcharts -->
     <script src="https://code.highcharts.com/highcharts.js"></script>
     <script src="https://code.highcharts.com/modules/accessibility.js"></script>
+    <script src="vendor/suncalc-1.9.0.js"></script>
+    <script src="dashboard-logic.js"></script>
 </head>
 <body class="observatory-shell dashboard-density antialiased">
     <a href="#main-content" class="obs-skip-link">Skip to live observatory data</a>
@@ -116,12 +118,15 @@ $last7SafeHoursDisplay = $last7SafeHours !== null ? number_format($last7SafeHour
             </div>
             <section id="heroCard" class="obs-hero obs-hero--compact">
                 <div class="obs-compact-hero-copy">
-                    <p class="obs-kicker text-cyan-300">Live site status · 51.81° N</p>
+                    <p class="obs-kicker text-cyan-300">Live site status · 51.81° N · 0.29° W</p>
                     <h1>Observatory conditions</h1>
                     <p>Nine local instruments, camera imagery, and observing history in one operational view.</p>
                 </div>
                 <div class="obs-compact-system-grid" aria-label="Observatory system overview">
-                    <div><span class="obs-data-label text-cyan-300">CAM-01</span><strong>Roof camera</strong></div>
+                    <div id="tonightSummary" title="Astronomical darkness for the approximate public location 51.81° N, 0.29° W">
+                        <span id="tonightLabel" class="obs-data-label text-cyan-300">Tonight · Calculating</span>
+                        <strong id="tonightWindow">Synchronising</strong>
+                    </div>
                     <div><span class="obs-data-label text-violet-300">UTC</span><strong id="utcClock">Synchronising</strong></div>
                     <a href="clear.php" class="obs-compact-system-link" aria-label="Open clear-sky archive">
                         <span class="obs-data-label text-cyan-300">Clear sky · 7d</span>
@@ -148,9 +153,12 @@ $last7SafeHoursDisplay = $last7SafeHours !== null ? number_format($last7SafeHour
                     <section id="skyImageContainer" class="obs-panel obs-panel--compact">
                         <div class="obs-compact-panel-head">
                             <div><p class="obs-data-label">CAM-01 · Roof array</p><h2>All-sky camera</h2></div>
-                            <button type="button" data-target="skyImageContainer" class="fullscreen-toggle obs-icon-button" aria-label="Toggle full screen for sky image">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M8 3H5a2 2 0 0 0-2 2v3m0 8v3a2 2 0 0 0 2 2h3m8 0h3a2 2 0 0 0 2-2v-3m0-8V5a2 2 0 0 0-2-2h-3" /></svg>
-                            </button>
+                            <div class="obs-compact-panel-actions">
+                                <span id="cameraFreshness" class="obs-frame-age" role="status">Awaiting frame</span>
+                                <button type="button" data-target="skyImageContainer" class="fullscreen-toggle obs-icon-button" aria-label="Toggle full screen for sky image">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M8 3H5a2 2 0 0 0-2 2v3m0 8v3a2 2 0 0 0 2 2h3m8 0h3a2 2 0 0 0 2-2v-3m0-8V5a2 2 0 0 0-2-2h-3" /></svg>
+                                </button>
+                            </div>
                         </div>
                         <div class="obs-camera-well obs-camera-well--compact">
                             <div id="skyImagePlaceholder" class="obs-camera-placeholder" aria-live="polite">
@@ -205,10 +213,29 @@ const envSeriesLabels = envTopicNames.map(name => {
 const envSeriesData = envTopicNames.map(() => []);
 let envChart = null;
 
+    const dashboardLogic = window.ObservatoryDashboardLogic;
+    const SENSOR_STALE_MS = 150 * 1000;
+    const CAMERA_STALE_MS = 5 * 60 * 1000;
+    const FRESHNESS_REFRESH_MS = 5 * 1000;
+    const OBSERVATORY_LATITUDE = 51.81;
+    const OBSERVATORY_LONGITUDE = -0.29;
+    const OBSERVATORY_TIME_ZONE = 'Europe/London';
+    const lastSeen = new Map();
+    const latestValues = new Map();
+    const sensorPresentation = new Map();
+    const topicNameByNormalized = new Map(topicEntries.map(([name]) => [name.toLowerCase(), name]));
+    const temperatureSensorName = topicNameByNormalized.get('temperature') || null;
+    const dewPointSensorName = topicNameByNormalized.get('dewpoint') || null;
+    let cameraLastSeen = null;
+    let mqttConnectionState = 'connecting';
+    let freshSafetySinceConnect = false;
+
     const heroCard = document.getElementById('heroCard');
     const observingStatus = document.getElementById('observingStatus');
     const observingStatusLabel = document.getElementById('observingStatusLabel');
     const observingStatusDetail = document.getElementById('observingStatusDetail');
+    const tonightLabel = document.getElementById('tonightLabel');
+    const tonightWindow = document.getElementById('tonightWindow');
     let heroState = 'assessing';
 
     function setHeroGradient(state) {
@@ -261,23 +288,71 @@ let envChart = null;
         return `Target ${direction} ${value}`;
     }
 
-    function updateHeroState() {
+    function sensorIsFresh(name, now) {
+        if (!dashboardLogic) return false;
+        return dashboardLogic.freshnessState(lastSeen.get(name), now, SENSOR_STALE_MS) === 'fresh';
+    }
+
+    function dewRiskContext(now = Date.now()) {
+        if (!dashboardLogic || !temperatureSensorName || !dewPointSensorName) return null;
+        const temperature = latestValues.get(temperatureSensorName);
+        const dewPoint = latestValues.get(dewPointSensorName);
+        const risk = dashboardLogic.classifyDewRisk(temperature, dewPoint);
+        const temperatureSeen = lastSeen.get(temperatureSensorName);
+        const dewPointSeen = lastSeen.get(dewPointSensorName);
+        if (!risk || !Number.isFinite(temperatureSeen) || !Number.isFinite(dewPointSeen)) return null;
+        const oldestReading = Math.min(temperatureSeen, dewPointSeen);
+        return {
+            ...risk,
+            lastSeen: oldestReading,
+            freshness: dashboardLogic.freshnessState(oldestReading, now, SENSOR_STALE_MS)
+        };
+    }
+
+    function updateHeroState(now = Date.now()) {
         if (!heroCard || !observingStatus || !observingStatusLabel || !observingStatusDetail) return;
+        if (!dashboardLogic) {
+            setHeroGradient('unknown');
+            observingStatus.dataset.state = 'unknown';
+            observingStatusLabel.textContent = 'Status unknown';
+            observingStatusDetail.textContent = 'Dashboard logic unavailable';
+            return;
+        }
         const safetyState = safetySensorName ? sensorStatus.get(safetySensorName) : 'unknown';
         const warnings = thresholdedSensors
-            .filter(([name]) => name !== safetySensorName && sensorStatus.get(name) === 'warning')
+            .filter(([name]) => name !== safetySensorName && sensorStatus.get(name) === 'warning' && sensorIsFresh(name, now))
             .map(([name]) => sensorLabel(name));
-        let state = 'assessing';
-        let label = 'Assessing';
+        const dewRisk = dewRiskContext(now);
+        if (dewRisk && dewRisk.freshness === 'fresh' && (dewRisk.state === 'watch' || dewRisk.state === 'critical')) {
+            warnings.unshift(`Condensation ${dewRisk.label.toLowerCase()}`);
+        }
+        const coreState = dashboardLogic.observingState({
+            connectionState: mqttConnectionState,
+            safetyReceived: freshSafetySinceConnect,
+            safetyState,
+            safetyLastSeen: safetySensorName ? lastSeen.get(safetySensorName) : null,
+            now,
+            staleAfterMs: SENSOR_STALE_MS
+        });
+        const state = coreState.state;
+        const label = coreState.label;
         let detail = 'Awaiting safety sensor';
 
-        if (safetyState === 'favorable') {
-            state = 'safe';
-            label = 'Safe to observe';
+        if (coreState.reason === 'connecting') detail = 'Connecting to live telemetry';
+        if (coreState.reason === 'disconnected') detail = 'Live telemetry disconnected';
+        if (coreState.reason === 'unavailable') detail = 'Live telemetry unavailable';
+        if (coreState.reason === 'awaiting') detail = 'Awaiting fresh safety sensor';
+        if (coreState.reason === 'stale') {
+            const safetySeen = safetySensorName ? lastSeen.get(safetySensorName) : null;
+            detail = Number.isFinite(safetySeen)
+                ? `Safety feed stale · ${dashboardLogic.formatAge(safetySeen, now)} ago`
+                : 'Safety feed unavailable';
+        }
+        if (coreState.reason === 'invalid') detail = 'Safety feed is invalid';
+        if (coreState.reason === 'permitted') {
             detail = warnings.length ? `${warnings[0]} needs attention` : 'Safety sensor permits observing';
-        } else if (safetyState === 'warning') {
-            state = 'unsafe';
-            label = 'Unsafe to observe';
+        }
+        if (coreState.reason === 'blocked') {
             detail = warnings.length
                 ? `${warnings.slice(0, 2).join(' · ')}${warnings.length > 2 ? ` +${warnings.length - 2}` : ''}`
                 : 'Safety sensor is blocking observation';
@@ -289,7 +364,33 @@ let envChart = null;
         observingStatusDetail.textContent = detail;
     }
 
+    function updateObservingContext(now = new Date()) {
+        if (!tonightLabel || !tonightWindow) return;
+        if (!dashboardLogic || !window.SunCalc) {
+            tonightLabel.textContent = 'Tonight · Unavailable';
+            tonightWindow.textContent = 'No calculation';
+            return;
+        }
+
+        const night = dashboardLogic.observingNight(now, window.SunCalc, OBSERVATORY_LATITUDE, OBSERVATORY_LONGITUDE);
+        const illuminationDate = night ? night.midpoint : now;
+        const moonPercent = dashboardLogic.moonIlluminationPercent(window.SunCalc, illuminationDate);
+        const moonLabel = moonPercent === null ? 'Moon --' : `Moon ${moonPercent}%`;
+
+        if (!night) {
+            tonightLabel.textContent = `Tonight · ${moonLabel}`;
+            tonightWindow.textContent = 'No full darkness';
+            return;
+        }
+
+        const timeRange = dashboardLogic.formatTimeRange(night.start, night.end, OBSERVATORY_TIME_ZONE);
+        tonightLabel.textContent = `Astro dark · ${moonLabel}`;
+        tonightWindow.textContent = timeRange || 'Unavailable';
+    }
+
     updateHeroState();
+    updateObservingContext();
+    window.setInterval(updateObservingContext, 60 * 1000);
 
     const cardsContainer = document.getElementById('cards');
     cardsContainer.innerHTML = '';
@@ -458,7 +559,7 @@ let envChart = null;
                         <div class="obs-instrument-mark obs-instrument-mark--compact"><span class="obs-instrument-code">${icon}</span></div>
                         <div class="min-w-0">
                             <h3 class="truncate text-sm font-semibold capitalize text-slate-900 dark:text-slate-100">${label}</h3>
-                            <p class="obs-compact-target">${targetText}</p>
+                            <p id="target-${sanitize(name)}" class="obs-compact-target">${targetText}</p>
                         </div>
                     </div>
                     <a href="historical.php?topic=${encodeURIComponent(name)}" class="obs-history-icon" aria-label="View ${label} history">
@@ -467,7 +568,7 @@ let envChart = null;
                 </div>
                 <div class="obs-compact-reading">
                     <p class="obs-readout-value text-slate-900 dark:text-white"><span id="${id}">--</span>${unitMarkup}</p>
-                    <span id="status-${sanitize(name)}" class="${statusBaseClasses} border-slate-300/60 bg-slate-500/5 text-slate-500 dark:border-slate-700 dark:text-slate-400">Awaiting</span>
+                    <span id="status-${sanitize(name)}" class="${statusBaseClasses} obs-sensor-status obs-sensor-status--neutral">Awaiting</span>
                 </div>
                 <div class="obs-chart-well obs-mini-chart-well">
                     <div id="sparkline-${sanitize(name)}" class="absolute inset-0" aria-hidden="true">
@@ -484,6 +585,103 @@ let envChart = null;
         initializeSparkline(name);
     });
 
+    function statusToneClass(tone) {
+        const normalizedTone = ['good', 'bad', 'warn', 'live', 'stale'].includes(tone) ? tone : 'neutral';
+        return `${statusBaseClasses} obs-sensor-status obs-sensor-status--${normalizedTone}`;
+    }
+
+    function exactReceiptTime(timestamp) {
+        if (!Number.isFinite(timestamp)) return '';
+        return new Intl.DateTimeFormat('en-GB', {
+            timeZone: OBSERVATORY_TIME_ZONE,
+            dateStyle: 'medium',
+            timeStyle: 'medium'
+        }).format(new Date(timestamp));
+    }
+
+    function renderSensorStatus(name, now = Date.now()) {
+        const statusElement = document.getElementById('status-' + sanitize(name));
+        const card = document.getElementById('card-' + sanitize(name));
+        if (!statusElement || !card || !dashboardLogic) return;
+
+        const timestamp = lastSeen.get(name);
+        const freshness = dashboardLogic.freshnessState(timestamp, now, SENSOR_STALE_MS);
+        const age = dashboardLogic.formatAge(timestamp, now);
+        let label = 'Awaiting';
+        let tone = 'neutral';
+        let isStale = false;
+        let effectiveTimestamp = timestamp;
+
+        if (freshness === 'stale') {
+            label = `Stale · ${age}`;
+            tone = 'stale';
+            isStale = true;
+        } else if (freshness === 'fresh') {
+            const presentation = sensorPresentation.get(name) || { label: 'Live', tone: 'live' };
+            label = `${presentation.label} · ${age}`;
+            tone = presentation.tone;
+        }
+
+        if (name === dewPointSensorName) {
+            const targetElement = document.getElementById('target-' + sanitize(name));
+            const dewRisk = dewRiskContext(now);
+            if (dewRisk) {
+                effectiveTimestamp = dewRisk.lastSeen;
+                const combinedAge = dashboardLogic.formatAge(dewRisk.lastSeen, now);
+                if (targetElement) targetElement.textContent = `Dew margin · ${dewRisk.margin.toFixed(1)} °C`;
+                if (dewRisk.freshness === 'stale') {
+                    label = `Stale · ${combinedAge}`;
+                    tone = 'stale';
+                    isStale = true;
+                } else {
+                    label = `${dewRisk.label} · ${combinedAge}`;
+                    tone = dewRisk.state === 'clear' ? 'good' : (dewRisk.state === 'watch' ? 'warn' : 'bad');
+                    isStale = false;
+                }
+            } else if (freshness === 'fresh') {
+                if (targetElement) targetElement.textContent = 'Dew margin · Awaiting temperature';
+                label = `Margin pending · ${age}`;
+                tone = 'live';
+            }
+        }
+
+        statusElement.textContent = label;
+        statusElement.className = statusToneClass(tone);
+        card.classList.toggle('obs-readout-card--stale', isStale);
+        const receiptTime = exactReceiptTime(effectiveTimestamp);
+        statusElement.title = receiptTime ? `Last received ${receiptTime}` : 'No live reading received';
+    }
+
+    function renderCameraFreshness(now = Date.now()) {
+        const cameraStatus = document.getElementById('cameraFreshness');
+        const cameraPanel = document.getElementById('skyImageContainer');
+        if (!cameraStatus || !cameraPanel || !dashboardLogic) return;
+
+        const freshness = dashboardLogic.freshnessState(cameraLastSeen, now, CAMERA_STALE_MS);
+        const age = dashboardLogic.formatAge(cameraLastSeen, now);
+        cameraStatus.classList.toggle('obs-frame-age--stale', freshness === 'stale');
+        cameraPanel.classList.toggle('obs-panel--stale', freshness === 'stale');
+        if (freshness === 'missing') {
+            cameraStatus.textContent = 'Awaiting frame';
+            cameraStatus.title = 'No camera frame received';
+        } else if (freshness === 'stale') {
+            cameraStatus.textContent = `Frame stale · ${age}`;
+            cameraStatus.title = `Last frame received ${exactReceiptTime(cameraLastSeen)}`;
+        } else {
+            cameraStatus.textContent = `Frame · ${age}`;
+            cameraStatus.title = `Last frame received ${exactReceiptTime(cameraLastSeen)}`;
+        }
+    }
+
+    function renderFreshness(now = Date.now()) {
+        topicEntries.forEach(([name]) => renderSensorStatus(name, now));
+        renderCameraFreshness(now);
+        updateHeroState(now);
+    }
+
+    renderFreshness();
+    window.setInterval(renderFreshness, FRESHNESS_REFRESH_MS);
+
 
 
     const statusEl = document.getElementById('mqttStatus');
@@ -497,7 +695,10 @@ let envChart = null;
 
     function scheduleReconnect() {
         const delay = Math.min(1000 * Math.pow(2, connectAttempts), 30000);
+        mqttConnectionState = 'reconnecting';
+        freshSafetySinceConnect = false;
         updateStatus('MQTT · Reconnecting', 'warn');
+        updateHeroState();
         setTimeout(() => {
             connectAttempts++;
             connectClient();
@@ -507,7 +708,10 @@ let envChart = null;
     function connectClient() {
         if (!window.mqtt) {
             console.warn('MQTT.js library is not loaded');
+            mqttConnectionState = 'unavailable';
+            freshSafetySinceConnect = false;
             updateStatus('MQTT · Unavailable', 'bad');
+            updateHeroState();
             return;
         }
         const isLocalBroker = brokerHost === window.location.hostname || brokerHost === 'localhost' || brokerHost === '127.0.0.1';
@@ -523,13 +727,17 @@ let envChart = null;
 
     function onConnectionLost() {
         console.log('Connection lost');
+        mqttConnectionState = 'disconnected';
+        freshSafetySinceConnect = false;
         updateStatus('MQTT · Disconnected', 'bad');
+        updateHeroState();
         scheduleReconnect();
     }
     function onMessageArrived(topic, message) {
         if (topic === 'Observatory/skyimage') {
             const img = document.getElementById('skyImage');
             const placeholder = document.getElementById('skyImagePlaceholder');
+            cameraLastSeen = Date.now();
             if (skyImageUrl) URL.revokeObjectURL(skyImageUrl);
             const blob = new Blob([message], { type: 'image/jpeg' });
             skyImageUrl = URL.createObjectURL(blob);
@@ -538,6 +746,7 @@ let envChart = null;
                 if (placeholder) placeholder.hidden = true;
             };
             img.src = skyImageUrl;
+            renderCameraFreshness(cameraLastSeen);
             return;
         }
         const rawValue = message.toString();
@@ -553,10 +762,10 @@ let envChart = null;
         const entry = topicEntries.find(([, cfg]) => cfg.topic === topic);
         if (entry) {
             const [name, cfg] = entry;
+            const receivedAt = Date.now();
             const normalizedName = name.toLowerCase();
             const id = 'value-' + sanitize(name);
             const el = document.getElementById(id);
-            const statusEl = document.getElementById('status-' + sanitize(name));
             const condition = typeof cfg.condition === 'string' ? cfg.condition.toLowerCase() : null;
             const threshold = parseFloat(cfg.green);
             const hasThreshold = Number.isFinite(threshold) && (condition === 'above' || condition === 'below');
@@ -568,34 +777,40 @@ let envChart = null;
                 ? (match ? 'Safe' : 'Unsafe')
                 : defaultDisplayValue;
             if (el) { el.textContent = displayValue; }
+            lastSeen.set(name, receivedAt);
+            if (hasNumericValue) {
+                latestValues.set(name, numericValue);
+            } else {
+                latestValues.delete(name);
+            }
 
             if (hasNumericValue && hasThreshold) {
-                if (statusEl) {
-                    if (match) {
-                        statusEl.textContent = sensorConditionLabel(name, true);
-                        statusEl.className = `${statusBaseClasses} border-emerald-400/30 bg-emerald-400/10 text-emerald-600 dark:text-emerald-300`;
-                    } else {
-                        statusEl.textContent = sensorConditionLabel(name, false);
-                        statusEl.className = `${statusBaseClasses} border-rose-400/30 bg-rose-400/10 text-rose-600 dark:text-rose-300`;
-                    }
-                }
-
+                sensorPresentation.set(name, {
+                    label: sensorConditionLabel(name, match),
+                    tone: match ? 'good' : 'bad'
+                });
                 if (isTrackedSensor) {
                     sensorStatus.set(name, match ? 'favorable' : 'warning');
                 }
             } else {
-                if (statusEl) {
-                    statusEl.textContent = 'Live';
-                    statusEl.className = `${statusBaseClasses} border-cyan-400/25 bg-cyan-400/5 text-cyan-700 dark:text-cyan-300`;
-                }
+                sensorPresentation.set(name, {
+                    label: hasNumericValue ? 'Live' : 'Signal',
+                    tone: hasNumericValue ? 'live' : 'neutral'
+                });
                 if (isTrackedSensor) {
                     sensorStatus.set(name, 'unknown');
                 }
             }
 
-            if (isTrackedSensor) {
-                updateHeroState();
+            if (name === safetySensorName) {
+                freshSafetySinceConnect = hasNumericValue;
             }
+            renderSensorStatus(name, receivedAt);
+            if (name === temperatureSensorName || name === dewPointSensorName) {
+                if (temperatureSensorName) renderSensorStatus(temperatureSensorName, receivedAt);
+                if (dewPointSensorName) renderSensorStatus(dewPointSensorName, receivedAt);
+            }
+            updateHeroState(receivedAt);
             if (hasNumericValue) {
                 recordSparklinePoint(name, numericValue);
             }
@@ -616,16 +831,22 @@ let envChart = null;
         }
     }
     function onConnect() {
+        mqttConnectionState = 'connected';
+        freshSafetySinceConnect = false;
         updateStatus('MQTT · Connected', 'ok');
         connectAttempts = 0;
         Object.values(topics).forEach(cfg => client.subscribe(cfg.topic));
         client.subscribe('Observatory/skyimage');
+        updateHeroState();
     }
 
     function loadMQTT(urls, idx = 0) {
         if (idx >= urls.length) {
             console.warn('MQTT.js library failed to load');
+            mqttConnectionState = 'unavailable';
+            freshSafetySinceConnect = false;
             updateStatus('MQTT · Unavailable', 'bad');
+            updateHeroState();
             return;
         }
         const script = document.createElement('script');
