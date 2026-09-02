@@ -63,7 +63,7 @@ $startParam = $_GET['start'] ?? null;
 
 if ($format === 'json') {
     try {
-        $pdo = new PDO("mysql:host=$dbHost;dbname=$dbName;charset=utf8", $dbUser, $dbPass, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
+        $pdo = new PDO("pgsql:host=$dbHost;dbname=$dbName", $dbUser, $dbPass, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
 
         $conditions = [];
         $params = [];
@@ -71,19 +71,19 @@ if ($format === 'json') {
         $normalizedEnd = normalizeDateParam($endParam, true);
 
         if ($normalizedStart) {
-            $conditions[] = 'dateTime >= :start';
+            $conditions[] = 'datetime >= :start';
             $params['start'] = $normalizedStart;
         }
         if ($normalizedEnd) {
-            $conditions[] = 'dateTime <= :end';
+            $conditions[] = 'datetime <= :end';
             $params['end'] = $normalizedEnd;
         }
 
-        $query = "SELECT dateTime AS timestamp, `$column` AS value FROM obs_weather";
+        $query = "SELECT datetime AS timestamp, \"$column\" AS value FROM obs_weather";
         if ($conditions) {
             $query .= ' WHERE ' . implode(' AND ', $conditions);
         }
-        $query .= ' ORDER BY dateTime ASC';
+        $query .= ' ORDER BY datetime ASC';
 
         $stmt = $pdo->prepare($query);
         $stmt->execute($params);

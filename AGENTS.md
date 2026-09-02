@@ -58,3 +58,5 @@ Design decisions added after this file should be appended here for future refere
 49. The dashboard derives condensation risk from the temperature minus dew-point margin: critical at 2°C or less, watch above 2°C through 4°C, and clear above 4°C. This derived warning supplements but does not override the binary safety sensor.
 50. The compact hero uses approximate public coordinates 51.81° N, 0.29° W and the Europe/London timezone to show astronomical darkness and Moon illumination using the self-hosted SunCalc 1.9.0 asset.
 51. The observatory brand mark uses a restrained night-sky palette and a clearly recognisable telescope tube, mount, and tripod aimed toward a crescent Moon; the header logo and favicon should remain visually consistent at small sizes.
+52. The replacement production platform uses Nginx, a dedicated PHP 8.5-FPM pool, and PostgreSQL; this supersedes the Apache/PHP 7.3/MySQL requirements above where they conflict.
+53. The website connects to PostgreSQL over its local Unix socket using peer authentication as the unprivileged `pubobs` service identity; no database password is embedded in the site or web-server configuration.
