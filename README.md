@@ -5,7 +5,7 @@ Website that publicly shows observatory sensor data. The site displays live and 
 ## Features
 
 - Live data via MQTT
-- Historical data stored in a local MySQL table `obs_weather`
+- Historical data stored in a local PostgreSQL table `obs_weather`
 - Native SVG sparklines for live sensor cards and Highcharts for interactive analytical and historical graphs
 - Tabulator for data tables
 - Tailwind CSS default styling with light and dark modes
@@ -81,20 +81,19 @@ npm test
 
 The astronomy calculations use the self-hosted SunCalc 1.9.0 browser build in `vendor/`; its licence is included alongside the source file. No runtime request to an astronomy service is required.
 
-Database credentials are provided to Apache via environment variables:
+Database connection settings are provided to PHP-FPM via environment variables:
 
 - `DB_HOST`
 - `DB_NAME`
 - `DB_USER`
-- `DB_PASS`
+- `DB_PASS` (optional when local peer authentication is used)
 
-Set these variables in your Apache site configuration using `SetEnv` directives, for example:
+Set these variables in the dedicated PHP-FPM pool, for example:
 
 ```
-SetEnv DB_HOST "localhost"
-SetEnv DB_NAME "pubobs"
-SetEnv DB_USER "pubobs_user"
-SetEnv DB_PASS "secret"
+env[DB_HOST] = /var/run/postgresql
+env[DB_NAME] = obs
+env[DB_USER] = pubobs
 ```
 
 ## Site Pages
@@ -110,13 +109,13 @@ flowchart LR
 ```mermaid
 flowchart TD
     Sensors-->MQTT[MQTT Broker]
-    MQTT-->WebServer[Apache2/PHP]
-    WebServer-->MySQL[(MySQL Database)]
+    MQTT-->WebServer[Nginx/PHP 8.5-FPM]
+    WebServer-->PostgreSQL[(PostgreSQL Database)]
     WebServer-->Browser[User Browser]
-    MySQL-->WebServer
+    PostgreSQL-->WebServer
 ```
 
-The web server subscribes to MQTT topics for real-time data and reads historical data from MySQL. Users access the site through their browsers.
+Browsers subscribe to MQTT over secure WebSockets for real-time data, while PHP reads historical data from PostgreSQL. Users access the site through Nginx.
 
 ## Updating the Website
 
@@ -125,10 +124,10 @@ The web server subscribes to MQTT topics for real-time data and reads historical
    ```bash
    git pull origin main
    ```
-3. Ensure Apache's environment variables contain valid database credentials.
-4. Restart Apache if configuration or dependencies changed:
+3. Ensure the dedicated PHP-FPM pool contains the required database connection settings.
+4. Reload PHP-FPM and Nginx if configuration or dependencies changed:
    ```bash
-   sudo systemctl restart apache2
+   sudo systemctl reload php8.5-fpm nginx
    ```
 
 ```mermaid
@@ -138,7 +137,7 @@ sequenceDiagram
     participant Server as AWS Ubuntu Server
     Dev->>Git: Push changes
     Server->>Git: Pull latest changes
-    Server->>Apache: Restart if needed
+    Server->>Server: Reload PHP-FPM and Nginx if needed
     User->>Server: Access updated site
 ```
 

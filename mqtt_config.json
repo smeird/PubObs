@@ -4,7 +4,7 @@
     "temperature": { "topic": "Observatory/temp","green": 0, "condition": "above","unit": "°C" },
     "rain": { "topic": "Observatory/rain","green": 4000, "condition": "above","unit": "" },
     "light": { "topic": "Observatory/light", "green": 7000, "condition": "above", "unit": "lux" },
-    "clouds": { "topic": "Observatory/clouds","green": -17, "condition": "above","unit": "°C" },
+    "clouds": { "topic": "Observatory/clouds","green": -17, "condition": "below","unit": "°C" },
     "safe": { "topic": "Observatory/safe", "green": 0, "condition": "above","unit": "" },
     "sqm": { "topic": "Observatory/sqm", "green": 12, "condition": "above","unit": "mag" },
     "humidity": { "topic": "Observatory/hum", "green": 90, "condition": "below","unit": "%" },
@@ -12,4 +12,3 @@
     "Wind Speed":  { "topic": "weather/windSpeed_kph", "green": 5, "condition": "below" , "unit": "kph" }
     }
 }
-

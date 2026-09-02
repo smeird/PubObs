@@ -10,13 +10,13 @@ $dbPass = getenv('DB_PASS');
 $monthHours = array_fill(1, 12, 0.0);
 $years = [];
 try {
-    $pdo = new PDO("mysql:host=$dbHost;dbname=$dbName;charset=utf8", $dbUser, $dbPass, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
-    $years = $pdo->query("SELECT DISTINCT YEAR(dateTime) AS y FROM obs_weather ORDER BY y DESC")->fetchAll(PDO::FETCH_COLUMN);
+    $pdo = new PDO("pgsql:host=$dbHost;dbname=$dbName", $dbUser, $dbPass, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
+    $years = $pdo->query("SELECT DISTINCT EXTRACT(YEAR FROM datetime)::integer AS y FROM obs_weather ORDER BY y DESC")->fetchAll(PDO::FETCH_COLUMN);
     $start = $year . '-01-01 00:00:00';
     $end = ($year + 1) . '-01-01 00:00:00';
 
     // Aggregate safe minutes per month
-    $stmt = $pdo->prepare("SELECT MONTH(dateTime) AS month, SUM(safe)/60 AS hours FROM obs_weather WHERE dateTime BETWEEN :start AND :end GROUP BY month");
+    $stmt = $pdo->prepare("SELECT EXTRACT(MONTH FROM datetime)::integer AS month, SUM(safe)::double precision/60 AS hours FROM obs_weather WHERE datetime BETWEEN :start AND :end GROUP BY month");
     $stmt->execute(['start' => $start, 'end' => $end]);
     foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
         $m = (int)$row['month'];
@@ -27,12 +27,12 @@ try {
 
     // Include time from the last record to period end if still safe
     $periodEnd = min(strtotime($end), time());
-    $lastStmt = $pdo->prepare("SELECT dateTime, safe FROM obs_weather WHERE dateTime BETWEEN :start AND :periodEnd ORDER BY dateTime DESC LIMIT 1");
+    $lastStmt = $pdo->prepare("SELECT datetime, safe FROM obs_weather WHERE datetime BETWEEN :start AND :periodEnd ORDER BY datetime DESC LIMIT 1");
     $lastStmt->execute(['start' => $start, 'periodEnd' => date('Y-m-d H:i:s', $periodEnd)]);
     $lastRow = $lastStmt->fetch(PDO::FETCH_ASSOC);
     if ($lastRow && (int)$lastRow['safe'] === 1) {
         $rangeStart = strtotime($start);
-        $segmentStart = max(strtotime($lastRow['dateTime']), $rangeStart);
+        $segmentStart = max(strtotime($lastRow['datetime']), $rangeStart);
         $segmentEnd = $periodEnd;
         while ($segmentStart < $segmentEnd) {
             $month = (int)date('n', $segmentStart);
